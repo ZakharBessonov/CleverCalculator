@@ -1,0 +1,14 @@
+flags=-I/Users/zaharbessonov/Desktop/Учёба\ в\ институте\ /Информатика/Calculator/headers -ggdb3 -std=c++20 -O0 -Wall -Wextra -Weffc++ -Wc++14-compat -Wmissing-declarations -Wcast-align -Wcast-qual\
+-Wconversion -Wctor-dtor-privacy -Wempty-body -Wfloat-equal -Wformat-security -Wformat-nonliteral -Wformat=2 -Winline\
+-Wnon-virtual-dtor -Woverloaded-virtual -Wpacked -Wpointer-arith -Winit-self -Wshadow -Wsign-conversion -Wsign-promo\
+-Wstrict-overflow=2 -Wsuggest-override -Wswitch-default -Wundef -Wunreachable-code -Wunused -Wvariadic-macros\
+-Wno-missing-field-initializers -Wno-narrowing -Wno-varargs -Wstack-protector -fcheck-new -fsized-deallocation\
+-fstack-protector -fstrict-overflow -Wlarger-than=8192 -fPIE -Werror=vla -Wchar-subscripts -Wformat-signedness\
+-Wredundant-decls -Wswitch-enum -Wno-old-style-cast -fno-omit-frame-pointer -fsanitize=address,alignment,bool,bounds,enum,float-cast-overflow,float-divide-by-zero,integer-divide-by-zero,nonnull-attribute,null,return,returns-nonnull-attribute,\shift,signed-integer-overflow,undefined,unreachable,vla-bound,vptr
+
+CC=g++
+
+sources=sources/binary_search.cpp  sources/calc_colors.cpp  sources/calc_comparators.cpp  sources/calc_dump.cpp  sources/calc_general_funcs.cpp  sources/calc_hash.cpp   sources/calc_math_operations.cpp   sources/calc_read_write_to_file.cpp   sources/calc_set_get.cpp  sources/main.cpp  sources/size_of_file.cpp
+
+all:
+	$(CC) $(sources) -o calculator $(flags)
