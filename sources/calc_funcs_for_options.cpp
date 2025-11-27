@@ -3,29 +3,34 @@
 #include <stdlib.h>
 #include <math.h>
 
-#include "calc_funcs_for_options.h"
 #include "calc_structs.h"
+#include "calc_funcs_for_options.h"
 #include "calc_macros.h"
+#include "calc_set_get.h"
+#include "binary_search.h"
+#include "calc_comparators.h"
+#include "calc_colors.h"
 
 extern Operation operations[];
 extern size_t numOfOperations;
+extern FILE* logfileCalc;
 
-static long double ScanfValueOfVar(Variables* varArray, int indexOfVar)
+static long double ScanfValueOfVar()
 {
     long double tempVal = 0.0;
-    int result = scanf("%Lf", tempVal);
+    int result = scanf("%Lf", &tempVal);
     while (getchar() != '\n');      // to take all until \n
 
     while (result <= 0)
     {
         if (result == EOF)
         {
-            printf("\nВведён символ конца файла. Программа завершена.\n");
+            cprintf(RED, "\nВведён символ конца файла. Программа завершена.\n");
             return NAN;
         }
 
-        printf("Некорректный ввод. Повторите ввод: ");
-        result = scanf("%Lf", tempVal);
+        cprintf(RED, "Некорректный ввод. Повторите ввод: ");
+        result = scanf("%Lf", &tempVal);
         while (getchar() != '\n');      // to take all until \n
     }
 
@@ -35,16 +40,17 @@ static long double ScanfValueOfVar(Variables* varArray, int indexOfVar)
 static int CalcSetValuesOfVars(MathExpression* mathExpression)
 {
     int varCounter = GetVariablesCounter(mathExpression);
-    Variables* varArray = GetVariablesPointer(mathExpression);
+    Variable* varPointer = GetVariablesPointer(mathExpression);
 
     if (varCounter != 0)
     {
-        printf("Чтобы вычислить значение выражения, необходимо ввести значение каждой переменной:\n");
+        cprintf(GREEN, "Чтобы вычислить значение выражения, необходимо ввести значение каждой переменной:\n");
     }
 
     for (int i = 0; i < varCounter; i++)
     {
-        long double tempVal = ScanfValueOfVar(varArray, i);
+        printf("%c = ", varPointer[i].identifier);
+        long double tempVal = ScanfValueOfVar();
         if (isnan(tempVal))
         {
             return 1;
@@ -65,7 +71,7 @@ static long double GetValOfVarByItsSpelling(MathExpression* mathExpression, char
     long double valueOfVar = 0.0;
     if (indexOfVar == -1)
     {
-        PRINT_LOG_FILE_CALC("ERROR: Variable '%c' is not found.\n");
+        PRINT_LOG_FILE_CALC("ERROR: Variable '%c' is not found.\n", varIdentifier);
         return NAN;
     }
     else
@@ -78,27 +84,33 @@ static long double GetValOfVarByItsSpelling(MathExpression* mathExpression, char
 
 static long double CalcCountNode(MathExpression* mathExpression, Node* node)
 {
-//     NodeType nodeType = GetTypeNode(node);
-//     long double tempVal = 0.0;
-//
-//     if (nodeType == TYPE_NUMBER)
-//     {
-//         GetNumVal(node, &tempVal);
-//         return tempVal;
-//     }
-//     else if (nodeType == TYPE_VAR)
-//     {
-//         tempVal = GetValOfVarByItsSpelling(mathExpression, GetVarIdentifierFromNode(node));
-//         return tempVal;
-//     }
-//
-//     OperationCode operationCode = GetOperation(node);
-//     NumOfArgs numOfArgs = operations[operationCode].numOfArgs;
-//     if (numOfArgs == ONE_ARG)
-//     {
-//
-//     }
-    return 1.0;
+    NodeType nodeType = GetTypeNode(node);
+    long double tempVal = 0.0;
+
+    if (nodeType == TYPE_NUMBER)
+    {
+        GetNumVal(node, &tempVal);
+        return tempVal;
+    }
+    else if (nodeType == TYPE_VAR)
+    {
+        tempVal = GetValOfVarByItsSpelling(mathExpression, GetVarIdentifierFromNode(node));
+        return tempVal;
+    }
+
+    OperationCode operationCode = GetOperation(node);
+    NumOfArgs numOfArgs = operations[operationCode].numOfArgs;
+    Node* leftNode = GetLeft(node);
+    Node* rightNode = GetRight(node);
+    if (numOfArgs == ONE_ARG)
+    {
+        return operations[operationCode].funcForOperation({CalcCountNode(mathExpression, rightNode)});
+    }
+    else
+    {
+        return operations[operationCode].funcForOperation({CalcCountNode(mathExpression, leftNode),
+                                                           CalcCountNode(mathExpression, rightNode)});
+    }
 }
 
 int CalcCountExpression(MathExpression* mathExpression)

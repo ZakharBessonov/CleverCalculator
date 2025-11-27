@@ -12,66 +12,68 @@
 #include "calc_consts.h"
 
 extern FILE* logfileCalc;
-// extern int (*CalcFunctionsForOption[])(MathExpression*);
-// extern size_t numOfFunctionsForOptions;
-//
-// static void CalcShowWelcomeMessage()
-// {
-//     printf("Умный Калькулятор 1.0.0\n");
-// }
-//
-// static int CalcConvertStrOfOptionsToNum(char* tempStr, int lenOfStr)
-// {
-//     int chosenOptions = 0;
-//     for (int i = 0; i < lenOfStr; i++)
-//     {
-//         if (tempStr[i] <= '0' || tempStr[i] > '0' + (int)numOfFunctionsForOptions)
-//         {
-//             printf("Некорректный номер операции '%c'.\n");
-//             return -1;
-//         }
-//         chosenOptions += (int)lroundl(powl(2.0, (long double)((int)(tempStr[i] - '0') - 1)));
-//     }
-//
-//     return chosenOptions;
-// }
-//
-// static void CalcShowMenu()
-// {
-//     printf("Было прочитано выражение из файла %s. Выберите, что вы хотите сделать с этим выражением:\n"
-//            "1) Вычислить\n"
-//            "2) Посчитать производную заданного порядка по выбранной переменной\n"
-//            "3) Разложить в ряд Тейлора в окрестности заданной точки до заданного порядка\n"
-//            "4) Построить график выражения (работает только, если переменных одна или две; соответственно,\n"
-//            "   будет построен 2D или 3D-график)\n"
-//            "5) Построить касательную к графику в данной точке (только для 2D-режима с одной переменной)\n"
-//            "6) Вычислить выражение с учётом погрешности, если известны погрешности переменных\n
-//            Ваш выбор (вы можете выбрать несколько опций сразу, тогда нужно записать их подряд без пробелов): ");
-//
-// }
-//
-// static int CalcChoseOptions()
-// {
-//     char tempStr[SPARE_VOLUME] = "";
-//     int lenOfStr = 0;
-//     int result = scanf("%s%n", tempStr, &lenOfStr);
-//     getchar();      // to take \n
-//
-//     while (result <= 0)
-//     {
-//         if (result == EOF)
-//         {
-//             printf("\nВведён символ конца файла. Программа завершена.\n");
-//             return 1;
-//         }
-//
-//         printf("Некорректный ввод. Повторите ввод (цифры записываются подряд без пробелов): ");
-//         result = scanf("%s%n", tempStr, &lenOfStr);
-//         getchar();      // to take \n
-//     }
-//
-//     return CalcConvertStrOfOptionsToNum(tempStr, lenOfStr);
-// }
+extern int (*CalcFunctionsForOption[])(MathExpression*);
+extern size_t numOfFunctionsForOptions;
+extern char* ioFileName;
+
+static void CalcShowWelcomeMessage()
+{
+    cprintf(CYAN, "Умный Калькулятор 1.0.0\n");
+}
+
+static int CalcConvertStrOfOptionsToNum(char* tempStr, int lenOfStr)
+{
+    int chosenOptions = 0;
+    for (int i = 0; i < lenOfStr; i++)
+    {
+        if (tempStr[i] <= '0' || tempStr[i] > '0' + (int)numOfFunctionsForOptions)
+        {
+            cprintf(RED, "Некорректный номер операции '%c'.\n", tempStr[i]);
+            return -1;
+        }
+        chosenOptions += (int)lroundl(powl(2.0, (long double)((int)(tempStr[i] - '0') - 1)));
+    }
+
+    return chosenOptions;
+}
+
+static void CalcShowMenu()
+{
+    cprintf(CYAN, "Было прочитано выражение из файла %s. Выберите, что вы хотите сделать с этим выражением:\n"
+            "1) Вычислить\n"
+            "2) Посчитать производную заданного порядка по выбранной переменной\n"
+            "3) Разложить в ряд Тейлора в окрестности заданной точки до заданного порядка\n"
+            "4) Построить график выражения (работает только, если переменных одна или две; соответственно,\n"
+            "   будет построен 2D или 3D-график)\n"
+            "5) Построить касательную к графику в данной точке (только для 2D-режима с одной переменной)\n"
+            "6) Вычислить выражение с учётом погрешности, если известны погрешности переменных\n"
+            "Ваш выбор (вы можете выбрать несколько опций сразу, тогда нужно записать их подряд без пробелов): ",
+            ioFileName);
+
+}
+
+static int CalcChoseOptions()
+{
+    char tempStr[SPARE_VOLUME] = "";
+    int lenOfStr = 0;
+    int result = scanf("%s%n", tempStr, &lenOfStr);
+    getchar();      // to take \n
+
+    while (result <= 0)
+    {
+        if (result == EOF)
+        {
+            cprintf(RED, "\nВведён символ конца файла. Программа завершена.\n");
+            return 1;
+        }
+
+        cprintf(RED, "Некорректный ввод. Повторите ввод (цифры записываются подряд без пробелов): ");
+        result = scanf("%s%n", tempStr, &lenOfStr);
+        getchar();      // to take \n
+    }
+
+    return CalcConvertStrOfOptionsToNum(tempStr, lenOfStr);
+}
 
 void CalcCtor(MathExpression* mathExpression)
 {
@@ -114,30 +116,31 @@ void CalcDtor(MathExpression* mathExpression)
     free(GetVariablesPointer(mathExpression));
 }
 
-// void CalcStart(MathExpression* mathExpression)
-// {
-//     CalcShowWelcomeMessage();
-//
-//     CalcShowMenu();
-//     int choosenOptions = CalcChoseOptions();
-//     int powerOfTwo = 1;
-//     int result = 0;
-//
-//     for (int i = 0; i < (int)numOfFunctionsForOptions; i++)
-//     {
-//         if (choosenOptions & powerOfTwo)
-//         {
-//             result = CalcFunctionsForOption[i](mathExpression);
-//         }
-//
-//         if (result)
-//         {
-//             PRINT_LOG_FILE_CALC("ERROR: An error occurred during execution option %d.\n", i + 1);
-//             printf("Возникла ошибка в ходе выполнения опции %d.\n", i + 1);
-//             return;
-//         }
-//     }
-// }
+void CalcStart(MathExpression* mathExpression)
+{
+    CalcShowWelcomeMessage();
+
+    CalcShowMenu();
+    int choosenOptions = CalcChoseOptions();
+    int powerOfTwo = 1;
+    int result = 0;
+
+    for (int i = 0; i < (int)numOfFunctionsForOptions; i++)
+    {
+        if (choosenOptions & powerOfTwo)
+        {
+            result = CalcFunctionsForOption[i](mathExpression);
+        }
+        powerOfTwo <<= 1;
+
+        if (result)
+        {
+            PRINT_LOG_FILE_CALC("ERROR: An error occurred during execution option %d.\n", i + 1);
+            cprintf(RED, "Возникла ошибка в ходе выполнения опции %d.\n", i + 1);
+            return;
+        }
+    }
+}
 
 void NodeFree(Node* node)
 {

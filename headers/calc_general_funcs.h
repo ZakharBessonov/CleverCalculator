@@ -5,7 +5,7 @@ void CalcCtor(MathExpression* mathExpression);
 
 int CalcVerify(MathExpression* mathExpression);
 
-// void CalcStart(MathExpression* mathExpression);
+void CalcStart(MathExpression* mathExpression);
 
 void CalcDtor(MathExpression* mathExpression);
 
