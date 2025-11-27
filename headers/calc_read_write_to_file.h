@@ -9,12 +9,6 @@ void CalcReadFile(MathExpression* mathExpression, FILE* ioStream);
 
 void CalcCreateTree(MathExpression* mathExpression);
 
-Node* CalcReadNode(MathExpression* mathExpression, char** curPos, Node* parent);
-
-void SkipSpaces(char** curPos);
-
-int IsNil(char* curPos);
-
 // Writing
 
 void CalcWriteTreeToFile(MathExpression* mathExpression);

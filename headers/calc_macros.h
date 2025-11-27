@@ -11,4 +11,6 @@ fprintf(logfileCalc, "<pre>\n%s:%d %s: <red>" X "</red>\n</pre>",__FILE__, __LIN
 
 #define CALL_DUMP(X, Y, ...) BEGIN { CalcDump(X, __FILE__, __func__, __LINE__, Y, ##__VA_ARGS__); } END
 
+#define RET_IF_NULL(X) BEGIN { if (X == NULL) {return NULL;} } END
+
 #endif

@@ -8,7 +8,7 @@ flags=-I/Users/zaharbessonov/Desktop/Учёба\ в\ институте\ /Ин
 
 CC=g++
 
-sources=sources/binary_search.cpp  sources/calc_colors.cpp  sources/calc_comparators.cpp  sources/calc_dump.cpp  sources/calc_general_funcs.cpp  sources/calc_hash.cpp   sources/calc_math_operations.cpp   sources/calc_read_write_to_file.cpp   sources/calc_set_get.cpp  sources/main.cpp  sources/size_of_file.cpp
+sources=sources/binary_search.cpp  sources/calc_colors.cpp  sources/calc_comparators.cpp  sources/calc_dump.cpp  sources/calc_general_funcs.cpp  sources/calc_hash.cpp   sources/calc_math_operations.cpp   sources/calc_read_write_to_file.cpp   sources/calc_set_get.cpp  sources/main.cpp  sources/size_of_file.cpp  sources/calc_grammar_constructions.cpp
 
 all:
 	$(CC) $(sources) -o calculator $(flags)

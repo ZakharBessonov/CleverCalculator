@@ -39,12 +39,19 @@ enum NumOfArgs
     TWO_ARGS
 };
 
+struct DataForCounting
+{
+    long double num1;
+    long double num2;
+};
+
 struct Operation
 {
     unsigned long hashOfOperation;
     OperationCode operationCode;
     NumOfArgs     numOfArgs;
     const char*   spellingOfOperation;
+    long double   (*funcForOperation)(DataForCounting);
 };
 
 union Value
@@ -90,13 +97,6 @@ enum Sons
 {
     LEFT = 1,
     RIGHT = 2
-};
-
-enum Answer
-{
-    NO_ANSWER,
-    YES,
-    NO
 };
 
 #endif

@@ -34,7 +34,7 @@ int main(int argc, char *argv[])
     CalcCreateTree(&expression);
     CALL_DUMP(&expression, "After reading");
 
-    CalcStart();
+    //CalcStart();
 
     //CalcStart(&expression);
 

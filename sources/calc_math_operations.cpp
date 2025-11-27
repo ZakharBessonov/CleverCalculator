@@ -1,4 +1,6 @@
 #include "calc_structs.h"
+//#include "calc_funcs_for_options.h"
+#include "calc_funcs_for_operations.h"
 
 Operation operations[] =
 {
@@ -25,4 +27,14 @@ Operation operations[] =
 
 size_t numOfOperations = sizeof(operations) / sizeof(*operations);
 
+int (*CalcFunctionsForOption[])(MathExpression*) =
+{
+    // CalcCountExpression,
+    // CalcCountDerivative,
+    // CalcCountTaylorSeries,
+    // CalcPlotGraph,
+    // CalcPlotTangentToGraph,
+    // CalcCountExpressionTakingIntoAccountTheError
+};
 
+size_t numOfFunctionsForOptions = sizeof(CalcFunctionsForOption) / sizeof(*CalcFunctionsForOption);

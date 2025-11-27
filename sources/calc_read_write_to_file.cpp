@@ -14,6 +14,7 @@
 #include "binary_search.h"
 #include "calc_comparators.h"
 #include "calc_hash.h"
+#include "calc_grammar_constructions.h"
 
 extern FILE* logfileCalc;
 extern char* ioFileName;
@@ -33,84 +34,12 @@ static void CountHashesForOperations()
     }
 }
 
-static int IsDigit(char* str)
+static void SkipSpaces(char** curPos)
 {
-    return ((str[0] == '-' && isdigit(str[1])) || isdigit(str[0]));
-}
-
-static int IsVar(char* str)
-{
-    return (str[1] == '\0' && isalpha(str[0]));
-}
-
-static void AddVarInArrayOfVarsIfNeeded(MathExpression* mathExpression, char varIdentifier)
-{
-    Variable wantedVar = {varIdentifier, 0.0};
-    Variable* ptToFirst = GetVariablesPointer(mathExpression);
-    size_t varCounter = (size_t)GetVariablesCounter(mathExpression);
-    ssize_t indexOfVarInArrayOfVars = FindElemInSortedArray(&wantedVar, ptToFirst, varCounter,
-                                                            sizeof(Variable), ComparatorOfVars);
-
-    if (indexOfVarInArrayOfVars == -1)
+    while (isspace(**curPos))
     {
-        InsertElemInSortedArray(&wantedVar, ptToFirst, varCounter,
-                                sizeof(Variable), ComparatorOfVars);
-        IncrementVariablesCounter(mathExpression);
+        (*curPos)++;
     }
-}
-
-static ssize_t FindOperationByHash(unsigned long hash, const char* spellingOfOperation)
-{
-    Operation wantedOp = {hash, DEFAULT_OP, DEFAULT_NUM_OF_ARGS, spellingOfOperation};
-    ssize_t indexOfOperations = FindElemInSortedArray(&wantedOp, operations, numOfOperations,
-                                                      sizeof(Operation), ComparatorOfOperationsByHash);
-    if (indexOfOperations == -1 || strcmp(spellingOfOperation, operations[indexOfOperations].spellingOfOperation) != 0)
-    {
-        return -1;
-    }
-
-    return indexOfOperations;
-}
-
-static int CalcReadValueAndDefineItsType(MathExpression* mathExpression, Node* node, char** curPos)
-{
-    int lenOfString = 0;
-    char tempStr[SPARE_VOLUME] = "";
-
-    sscanf(*curPos, "%[^( \n\t]%n", tempStr, &lenOfString);
-
-    tempStr[lenOfString] = '\0';
-    if (IsDigit(tempStr))
-    {
-        long double numVal = 0.0;
-        sscanf(tempStr, "%Lf", &numVal);
-        SetTypeNode(node, TYPE_NUMBER);
-        SetNumVal(node, numVal);
-    }
-    else if (IsVar(tempStr))
-    {
-        SetTypeNode(node, TYPE_VAR);
-        SetVarIdentifierToNode(node, tempStr[0]);
-        AddVarInArrayOfVarsIfNeeded(mathExpression, tempStr[0]);
-    }
-    else
-    {
-        unsigned long tempHash = CalcCountHashDjb2(tempStr);
-        ssize_t indexOfOperation = FindOperationByHash(tempHash, tempStr);
-        if (indexOfOperation == -1)
-        {
-            fprintf(logfileCalc, "<b><red>Что_то пошло не так! Неверная команда \"%s\" </red></b>\n", tempStr);
-            *curPos += lenOfString;
-            SkipSpaces(curPos);
-            return -1;
-        }
-        SetTypeNode(node, TYPE_OP);
-        SetOperation(node, operations[indexOfOperation].operationCode);
-    }
-
-    *curPos += lenOfString;
-    SkipSpaces(curPos);
-    return GetTypeNode(node);
 }
 
 FILE* CalcOpenFile(int argc, char *argv[])
@@ -177,81 +106,11 @@ void CalcCreateTree(MathExpression* mathExpression)
     fprintf(logfileCalc, "<meta charset=\"utf-8\">\n"
                        "<pre>\n<h3>Начинаем читать файл %s:</h3>"
                        "%s\n", ioFileName, curPos);
-    SetRoot(mathExpression, CalcReadNode(mathExpression, &curPos, NULL));
-    fprintf(logfileCalc, "</pre>\n");
+    fprintf(logfileCalc, "<h3>Успешно прочитаны символы: </h3>");
+    SetRoot(mathExpression, GetG(mathExpression, &curPos));
+    fprintf(logfileCalc, "\n</pre>\n");
 
     qsort(operations, numOfOperations, sizeof(Operation), ComparatorOfOperationsByCodes);
-}
-
-Node* CalcReadNode(MathExpression* mathExpression, char** curPos, Node* parent)
-{
-    if (**curPos == '(')
-    {
-        Node* newNode = (Node*)calloc(1, sizeof(Node));
-        fprintf(logfileCalc, "<b>Создали узел,</b>\n");
-        (*curPos)++;        // Skip '('
-        fprintf(logfileCalc, "<b>Пропустили скобку:</b>\n"
-                           "%s\n\n", *curPos);
-        SkipSpaces(curPos);
-        fprintf(logfileCalc, "<b>Пропустили пробелы:</b>\n"
-                           "%s\n\n", *curPos);
-        int typeOfValue = CalcReadValueAndDefineItsType(mathExpression, newNode, curPos);
-        if (typeOfValue == -1)
-        {
-            free(newNode);
-            return NULL;
-        }
-        fprintf(logfileCalc, "<b>Считали имя узла:</b>\n"
-                           "%s\n\n", *curPos);
-        SkipSpaces(curPos);
-        fprintf(logfileCalc, "<b>Пропустили пробелы:</b>\n"
-                           "%s\n\n", *curPos);
-        SetParent(newNode, parent);
-        fprintf(logfileCalc, "<b>Установили родителя узла,</b>\n");
-
-        SetLeft(newNode, CalcReadNode(mathExpression, curPos, newNode));
-        fprintf(logfileCalc, "<b>Считали левое поддерево:</b>\n"
-                           "%s\n\n", *curPos);
-        SetRight(newNode, CalcReadNode(mathExpression, curPos, newNode));
-        fprintf(logfileCalc, "<b>Считали правое поддерево:</b>\n"
-                           "%s\n\n", *curPos);
-
-        SkipSpaces(curPos);
-        fprintf(logfileCalc, "<b>Пропустили пробелы:</b>\n"
-                           "%s\n\n", *curPos);
-        (*curPos)++;        // Skip ')'
-        fprintf(logfileCalc, "<b>Пропустили скобку:</b>\n"
-                           "%s\n\n", *curPos);
-        SkipSpaces(curPos);
-        fprintf(logfileCalc, "<b>Пропустили пробелы:</b>\n"
-                           "%s\n\n", *curPos);
-        return newNode;
-    }
-    else if (IsNil(*curPos))
-    {
-        *curPos += LEN_NIL;
-        fprintf(logfileCalc, "<b>Пропустили nil:</b>\n"
-                           "%s\n\n", *curPos);
-        SkipSpaces(curPos);
-        return NULL;
-    }
-
-    // Here we can put log-message
-    fprintf(logfileCalc, "<b><red>Что_то пошло не так! Неверный символ '%c' </red></b>\n", **curPos);
-    return NULL;
-}
-
-void SkipSpaces(char** curPos)
-{
-    while (isspace(**curPos))
-    {
-        (*curPos)++;
-    }
-}
-
-int IsNil(char* curPos)
-{
-    return strncmp(curPos, "nil", 3) == 0;
 }
 
 // Writing
