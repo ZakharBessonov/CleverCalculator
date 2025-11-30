@@ -7,6 +7,8 @@ extern FILE* logfileCalc;
 
 // Getters
 
+//NOTE: Заменить ифы на ассерты
+
 Node* GetRight(Node* node)
 {
     if (node == NULL)

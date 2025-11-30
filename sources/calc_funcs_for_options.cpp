@@ -5,11 +5,14 @@
 
 #include "calc_structs.h"
 #include "calc_funcs_for_options.h"
+#include "calc_general_funcs.h"
 #include "calc_macros.h"
 #include "calc_set_get.h"
 #include "binary_search.h"
 #include "calc_comparators.h"
 #include "calc_colors.h"
+#include "calc_dump.h"
+#include "calc_read_write_to_file.h"
 
 extern Operation operations[];
 extern size_t numOfOperations;
@@ -59,6 +62,37 @@ static int CalcSetValuesOfVars(MathExpression* mathExpression)
     }
 
     return 0;
+}
+
+static Node* CalcNewNumNode(long double number)
+{
+    Node* newNumNode = (Node*)calloc(1, sizeof(Node));
+    RET_IF_NULL(newNumNode);
+
+    SetTypeNode(newNumNode, TYPE_NUMBER);
+    SetNumVal(newNumNode, number);
+
+    return newNumNode;
+}
+
+Node* CalcDifferentiate(Node* node, char varDifferentiation)
+{
+    NodeType type = GetTypeNode(node);
+    Node* newNode = (Node*)calloc(1, sizeof(newNode));
+    if (type == TYPE_NUMBER || (type == TYPE_VAR && GetVarIdentifierFromNode(node) != varDifferentiation))
+    {
+
+        return CalcNewNumNode(0);
+    }
+    else if (type == TYPE_VAR)
+    {
+        return CalcNewNumNode(1);
+    }
+    else
+    {
+        OperationCode operationCode = GetOperation(node);
+        return operations[operationCode].funcForDerivative(node);
+    }
 }
 
 static long double GetValOfVarByItsSpelling(MathExpression* mathExpression, char varIdentifier)
@@ -126,7 +160,21 @@ int CalcCountExpression(MathExpression* mathExpression)
 
 int CalcCountDerivative(MathExpression* mathExpression)
 {
-    return 1;
+    // if (CalcChooseVarDifferentiation(mathExpression, &varDifferentiation))
+    // {
+    //     return 1;
+    // }
+
+    MathExpression derivative = {};
+    CalcCtor(&derivative);
+    SetRoot(&derivative, CalcDifferentiate(GetRoot(mathExpression), 'x'));
+    SetVariablesPointer(&derivative, GetVariablesPointer(mathExpression));
+    SetFileCounter(&derivative, 2);
+    CALL_DUMP(&derivative, "After differentiation");
+    CalcWriteExpressionToTeXFile(&derivative, "Попробуем посчитать производную", "Надеюсь, я ещё не забыл то,"
+                                              " что изучается в 10 классе");
+
+    return 0;
 }
 
 int CalcCountTaylorSeries(MathExpression* mathExpression)

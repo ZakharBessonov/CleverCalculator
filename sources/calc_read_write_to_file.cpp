@@ -15,6 +15,7 @@
 #include "calc_comparators.h"
 #include "calc_hash.h"
 #include "calc_grammar_constructions.h"
+#include "calc_simplification.h"
 
 extern FILE* logfileCalc;
 extern char* ioFileName;
@@ -115,44 +116,63 @@ void CalcCreateTree(MathExpression* mathExpression)
 
 // Writing
 
-void CalcWriteTreeToFile(MathExpression* mathExpression)
+static void CalcWritePreamble(FILE* texFile)
 {
-    FILE* ioFile = fopen(ioFileName, "w");
-    if (ioFile == NULL)
+    fprintf(texFile, "\\documentclass{article}\n"
+                     "\\usepackage[T2A]{fontenc}\n"
+                     "\\usepackage[utf8]{inputenc}\n"
+                     "\\usepackage[russian]{babel}\n"
+                     "\\begin{document}\n"
+                     "Итак, самое время заняться нашим любимым делом - вычислениями!\n");
+}
+
+void CalcWriteExpressionToTeXFile(MathExpression* mathExpression, const char* message, const char* title)
+{
+    static int IsThisFirstOpening = 1;
+    FILE* texFile = NULL;
+    if (IsThisFirstOpening == 1)
     {
-        PRINT_LOG_FILE_CALC("ERROR: A error was occurred while opening ioFile.txt for writing.\n");
+        texFile = fopen("texFile.tex", "w");
+    }
+    else
+    {
+        texFile = fopen("texFile.tex", "a");
+    }
+
+    if (texFile == NULL)
+    {
+        PRINT_LOG_FILE_CALC("ERROR: An error was occurred while opening texFile.tex\n");
         return;
     }
 
-    CalcWriteNodeToFile(GetRoot(mathExpression), ioFile);
-    fclose(ioFile);
+    if (IsThisFirstOpening == 1)
+    {
+        CalcWritePreamble(texFile);
+        IsThisFirstOpening--;
+    }
+
+    fprintf(texFile, "%s\\\\\n"
+                     "\\centerline{\\textbf{%s}}\n"
+                     "\\begin{equation}\n" , message, title);
+    OperationCode operationCode = GetOperation(GetRoot(mathExpression));
+    operations[operationCode].funcToWritingInTeXFile(texFile, GetRoot(mathExpression));
+    fprintf(texFile, "\n\\end{equation}\n");
+
+    CalcSimplifyExpression(mathExpression);
+    CALL_DUMP(mathExpression, "After simplification");
+    fprintf(texFile, "После упрощения неожиданно получилось вот это:\n"
+                     "\\begin{equation}\n");
+    operationCode = GetOperation(GetRoot(mathExpression));
+    operations[operationCode].funcToWritingInTeXFile(texFile, GetRoot(mathExpression));
+    fprintf(texFile, "\n\\end{equation}\n");
+    fclose(texFile);
 }
 
-void CalcWriteNodeToFile(Node* node, FILE* ioFile)
+void CalcFinishTeXFile()
 {
-    fprintf(ioFile, "( \"");
-    //fputs(NodeGetData(node), ioFile);
-    fprintf(ioFile, "\" ");
-
-    if (GetRight(node) != NULL)
-    {
-        CalcWriteNodeToFile(GetRight(node), ioFile);
-    }
-    else
-    {
-        fprintf(ioFile, " nil ");
-    }
-
-    if (GetLeft(node) != NULL)
-    {
-        CalcWriteNodeToFile(GetLeft(node), ioFile);
-    }
-    else
-    {
-        fprintf(ioFile, "nil ");
-    }
-
-    fprintf(ioFile, ") ");
+    FILE* texFile = fopen("texFile.tex", "a");
+    fprintf(texFile, "\n\\end{document}\n");
+    fclose(texFile);
 }
 
 

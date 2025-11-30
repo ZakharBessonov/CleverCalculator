@@ -18,6 +18,8 @@ extern char* ioFileName;
 extern Operation operations[];
 extern size_t numOfOperations;
 
+// NOTE: Заменить $ на \0
+
 static void SkipSpaces(char** curPos)
 {
     (*curPos)++;
@@ -302,7 +304,7 @@ Node* GetP(MathExpression* mathExpression, char** curPos)
     {
         newOpNode = GetV(mathExpression, curPos);
     }
-    else if((indexOfOperation = IsFunc(*curPos)) != -1)
+    else if((indexOfOperation = IsFunc(*curPos)) != -1)       // Заменить логику, строка читается дважды
     {
         newOpNode = GetF(mathExpression, curPos, indexOfOperation);
     }

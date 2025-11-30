@@ -17,6 +17,7 @@ char* ioFileName = NULL;
 extern Operation operations[];
 
 //NOTE: Попробовать цветные указатели
+//NOTE: Попробовать разбить на паки
 
 static void PrintVariables(MathExpression* mathExpression)
 {
@@ -37,7 +38,7 @@ static void WriteDescriptionOfOpNode(MathExpression* mathExpression, FILE* graph
 {
     int codeOfOperation = GetOperation(node);
     fprintf(graph, "node%d [shape=Mrecord, style=filled, fillcolor=\"%s\", fontname=\"PT Mono\","
-                   " label = \"{ %p | %s | { <%s> %p | <%s> %p } }\";]\n",
+                   " label = \"{ %p | val: %s | { <%s> %p | <%s> %p } }\";]\n",
                    number, COLOR_FOR_OPERATIONS, node,
                    operations[codeOfOperation].spellingOfOperation, "Left", GetLeft(node),
                    "Right", GetRight(node));

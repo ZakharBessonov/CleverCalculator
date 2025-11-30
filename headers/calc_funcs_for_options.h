@@ -5,6 +5,8 @@ int CalcCountExpression(MathExpression* mathExpression);
 
 int CalcCountDerivative(MathExpression* mathExpression);
 
+Node* CalcDifferentiate(Node* node, char varDifferentiation);
+
 int CalcCountTaylorSeries(MathExpression* mathExpression);
 
 int CalcPlotGraph(MathExpression* mathExpression);

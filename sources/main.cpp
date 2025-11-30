@@ -34,11 +34,14 @@ int main(int argc, char *argv[])
     CalcCreateTree(&expression);
     CALL_DUMP(&expression, "After reading");
 
+    CalcWriteExpressionToTeXFile(&expression, "Начнём с простого", "Имеем то, что имеем");
+
     CalcStart(&expression);
 
     //CalcSimplifyExpression(&expression);
     //CalcWriteTreeToFile(&expression);
     //CALL_DUMP(&expression, "After adding new elem");
+    CalcFinishTeXFile();
 
     CalcDtor(&expression);
 

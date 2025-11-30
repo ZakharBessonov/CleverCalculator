@@ -45,15 +45,6 @@ struct DataForCounting
     long double num2;
 };
 
-struct Operation
-{
-    unsigned long hashOfOperation;
-    OperationCode operationCode;
-    NumOfArgs     numOfArgs;
-    const char*   spellingOfOperation;
-    long double   (*funcForOperation)(DataForCounting);
-};
-
 union Value
 {
     long double   numVal;
@@ -70,6 +61,17 @@ struct Node
     Node*     left;
 };
 
+struct Operation
+{
+    unsigned long hashOfOperation;
+    OperationCode operationCode;
+    NumOfArgs     numOfArgs;
+    const char*   spellingOfOperation;
+    long double   (*funcForOperation)(DataForCounting);
+    void          (*funcToWritingInTeXFile)(FILE*, Node*);
+    Node*         (*funcForDerivative)(Node*);
+};
+
 struct Variable
 {
     char         identifier;
@@ -82,7 +84,7 @@ struct MathExpression
     char*      buffer;
     size_t     lenOfBuffer;
     int        fileCounter;
-    Variable*  variables;
+    Variable*  variables;       //NOTE Здесь можно поменять на статический массив фиксированной длины
     int        variablesCounter;
 };
 
