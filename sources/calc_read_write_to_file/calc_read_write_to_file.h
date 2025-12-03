@@ -11,11 +11,11 @@ void CalcCreateTree(MathExpression* mathExpression);
 
 // Writing
 
-void CalcWriteExpressionToTeXFile(MathExpression* mathExpression, const char* message, const char* title);
+void CalcOpenTexFileAndWritePreamble();
 
-void CalcWriteTreeToFile(MathExpression* mathExpression);
+void CalcWriteExpressionToTeXFile(MathExpression* mathExpression, const char* message);
 
-void CalcWriteNodeToFile(Node* node, FILE* ioFile);
+void CalcWriteTitleToTexFile(const char* title, ...);
 
 void CalcFinishTeXFile();
 

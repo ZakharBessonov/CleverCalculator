@@ -9,6 +9,8 @@ void CalcStart(MathExpression* mathExpression);
 
 void CalcDtor(MathExpression* mathExpression);
 
+void FileCounterDtor(MathExpression* mathExpression);
+
 void NodeFree(Node* node);
 
 #endif

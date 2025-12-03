@@ -16,21 +16,21 @@ FILE* logfileCalc = NULL;
 char* ioFileName = NULL;
 extern Operation operations[];
 
-//NOTE: Попробовать цветные указатели
-//NOTE: Попробовать разбить на паки
+//NOTE: Попробовать разбить на папки - done
 
 static void PrintVariables(MathExpression* mathExpression)
 {
     fprintf(logfileCalc, "Variables:\n");
-    int varCounter = GetVariablesCounter(mathExpression);
-    char identifier = '\0';
+    Variable* varPointer = GetVariablesPointer(mathExpression);
     long double value = 0.0;
 
-    for (int i = 0; i < varCounter; i++)
+    for (int i = 0; i < MAX_NUM_OF_VARIABLES; i++)
     {
-        identifier = GetVarIdentifierFromArrayOfVars(mathExpression, i);
-        value = GetVariableValue(mathExpression, i);
-        fprintf(logfileCalc, "      <green>%c  =  %Lg</green>\n", identifier, value);
+        if (varPointer[i].identifier == GetVariableSpelling(i))
+        {
+            value = GetVariableValue(mathExpression, GetVariableSpelling(i));
+            fprintf(logfileCalc, "      <green>%c  =  %Lg</green>\n", GetVariableSpelling(i), value);
+        }
     }
 }
 
@@ -38,8 +38,8 @@ static void WriteDescriptionOfOpNode(MathExpression* mathExpression, FILE* graph
 {
     int codeOfOperation = GetOperation(node);
     fprintf(graph, "node%d [shape=Mrecord, style=filled, fillcolor=\"%s\", fontname=\"PT Mono\","
-                   " label = \"{ %p | val: %s | { <%s> %p | <%s> %p } }\";]\n",
-                   number, COLOR_FOR_OPERATIONS, node,
+                   " label = \"{ Parent: %p | %p | val: %s | { <%s> %p | <%s> %p } }\";]\n",
+                   number, COLOR_FOR_OPERATIONS, GetParent(node), node,
                    operations[codeOfOperation].spellingOfOperation, "Left", GetLeft(node),
                    "Right", GetRight(node));
 }
@@ -47,26 +47,20 @@ static void WriteDescriptionOfOpNode(MathExpression* mathExpression, FILE* graph
 static void WriteDescriptionOfVarNode(MathExpression* mathExpression, FILE* graph, int number, Node* node)
 {
     char identifier = GetVarIdentifierFromNode(node);
-    Variable wantedVar = {identifier, 0.0};
-    Variable* ptToFirst = GetVariablesPointer(mathExpression);
-    size_t varCounter = (size_t)GetVariablesCounter(mathExpression);
-    ssize_t indexOfVar = FindElemInSortedArray(&wantedVar, ptToFirst, varCounter,
-                              sizeof(Variable), ComparatorOfVars);
-    long double valueOfVar = 0.0;
-    if (indexOfVar == -1)
+    Variable* varPointer = GetVariablesPointer(mathExpression);
+
+    if (varPointer[GetVariableIndex(identifier)].identifier != identifier)
     {
-        valueOfVar = NAN;
         fprintf(logfileCalc, "ERROR: Variable '%c' is not found.\n", identifier);
-    }
-    else
-    {
-        valueOfVar = ptToFirst[indexOfVar].value;
+        identifier = '?';
     }
 
+    long double valueOfVar = GetVariableValue(mathExpression, identifier);
+
     fprintf(graph, "node%d [shape=record, style=filled, fillcolor=\"%s\", fontname=\"PT Mono\","
-                   " label = \"{ %p | %c = %Lg }\";]\n",
-                   number, COLOR_FOR_VARS, node,
-                   identifier, valueOfVar);
+                   " label = \"{ Parent: %p | %p | %c = %Lg | {%p | %p}}\";]\n",
+                   number, COLOR_FOR_VARS, GetParent(node), node,
+                   identifier, valueOfVar, GetLeft(node), GetRight(node));
 }
 
 static void WriteDescriptionOfNumNode(MathExpression* mathExpression, FILE* graph, int number, Node* node)
@@ -75,8 +69,8 @@ static void WriteDescriptionOfNumNode(MathExpression* mathExpression, FILE* grap
     GetNumVal(node, &value);
 
     fprintf(graph, "node%d [shape=record, style=filled, fillcolor=\"%s\", fontname=\"PT Mono\","
-                   " label = \"{ %p | %Lg }\";]\n",
-                   number, COLOR_FOR_NUMS, node, value);
+                   " label = \"{ Parent: %p | %p | %Lg | {%p | %p}}\";]\n",
+                   number, COLOR_FOR_NUMS, GetParent(node), node, value, GetLeft(node), GetRight(node));
 }
 
 void CalcDump(MathExpression* mathExpression, const char* fileName, const char* func, int line, const char* message, ...)
@@ -85,8 +79,8 @@ void CalcDump(MathExpression* mathExpression, const char* fileName, const char* 
     va_start(args, message);
 
     fprintf(logfileCalc, "<pre>\n"
-                       "<head>\n<link rel=\"stylesheet\" href=\"styles.css\">\n</head>"
-                       "<h3> DUMP <red> from %s:</red> <blue>", func);
+                         "<head>\n<link rel=\"stylesheet\" href=\"styles.css\">\n</head>"
+                         "<h3> DUMP <red> from %s:</red> <blue>", func);
     vfprintf(logfileCalc, message, args);
     fprintf(logfileCalc, "</blue> </h3>"
                          "MathExpression { %s:%d } from <b>\"%s\"</b>:", fileName, line, ioFileName);
@@ -105,12 +99,7 @@ void CalcDump(MathExpression* mathExpression, const char* fileName, const char* 
     }
 
     size_t lenOfBuffer = 0;
-    GetLenOfBuffer(mathExpression, &lenOfBuffer);
-    fprintf(logfileCalc, "Root:             <green> %p </green>\n"
-                         "Buffer:           <green> %p </green>\n"
-                         "Length of buffer: <green> %zu </green>\n",
-                         GetRoot(mathExpression), GetBufferPointer(mathExpression),
-                         lenOfBuffer);
+    fprintf(logfileCalc, "Root:             <green> %p </green>\n", GetRoot(mathExpression));
 
     PrintVariables(mathExpression);
 

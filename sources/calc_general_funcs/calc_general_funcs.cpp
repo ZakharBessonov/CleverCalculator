@@ -15,6 +15,7 @@ extern FILE* logfileCalc;
 extern int (*CalcFunctionsForOption[])(MathExpression*);
 extern size_t numOfFunctionsForOptions;
 extern char* ioFileName;
+extern FILE* texFile;
 
 static void CalcShowWelcomeMessage()
 {
@@ -29,7 +30,7 @@ static int CalcConvertStrOfOptionsToNum(char* tempStr, int lenOfStr)
         if (tempStr[i] <= '0' || tempStr[i] > '0' + (int)numOfFunctionsForOptions)
         {
             cprintf(RED, "Некорректный номер операции '%c'.\n", tempStr[i]);
-            return -1;
+            return 0;
         }
         chosenOptions += (int)lroundl(powl(2.0, (long double)((int)(tempStr[i] - '0') - 1)));
     }
@@ -42,10 +43,9 @@ static void CalcShowMenu()
     cprintf(CYAN, "Было прочитано выражение из файла %s. Выберите, что вы хотите сделать с этим выражением:\n"
             "1) Вычислить\n"
             "2) Посчитать производную заданного порядка по выбранной переменной\n"
-            "3) Разложить в ряд Тейлора в окрестности заданной точки до заданного порядка\n"
-            "4) Построить график выражения (работает только, если переменных одна или две; соответственно,\n"
-            "   будет построен 2D или 3D-график)\n"
-            "5) Построить касательную к графику в данной точке (только для 2D-режима с одной переменной)\n"
+            "3) Разложить в ряд Тейлора в окрестности заданной точки до заданного порядка (в случае одной переменной)\n"
+            "4) Построить график выражения (только, если переменная одна)\n"
+            "5) Построить касательную к графику в данной точке (только, если переменная одна)\n"
             "6) Вычислить выражение с учётом погрешности, если известны погрешности переменных\n"
             "Ваш выбор (вы можете выбрать несколько опций сразу, тогда нужно записать их подряд без пробелов): ",
             ioFileName);
@@ -80,16 +80,14 @@ void CalcCtor(MathExpression* mathExpression)
     SetRoot(mathExpression, NULL);
     SetBufferPointer(mathExpression, NULL);
     SetLenOfBuffer(mathExpression, 0);
+    mathExpression->fileCounter = (int*)calloc(1, sizeof(int));
     SetFileCounter(mathExpression, 0);
 
-    Variable* tempVariablesPointer = (Variable*)calloc(MAX_COUNT_OF_VARIABLES, sizeof(Variable));
-    if (tempVariablesPointer == NULL)
+    for (int i = 0; i < MAX_NUM_OF_VARIABLES; i++)
     {
-        PRINT_LOG_FILE_CALC("ERROR: A error was occurred while allocating memory for array of variables.\n");
-        return;
+        mathExpression->variables[i].value = NAN;
     }
 
-    SetVariablesPointer(mathExpression, tempVariablesPointer);
     SetVariablesCounter(mathExpression, 0);
 }
 
@@ -106,14 +104,18 @@ int CalcVerify(MathExpression* mathExpression)
 
 void CalcDtor(MathExpression* mathExpression)
 {
-    free(GetBufferPointer(mathExpression));
     SetLenOfBuffer(mathExpression, 0);
-    SetFileCounter(mathExpression, 0);
     if (GetRoot(mathExpression) != NULL)
     {
         NodeFree(GetRoot(mathExpression));
     }
-    free(GetVariablesPointer(mathExpression));
+    SetRoot(mathExpression, NULL);
+
+}
+
+void FileCounterDtor(MathExpression* mathExpression)
+{
+    free(mathExpression->fileCounter);
 }
 
 void CalcStart(MathExpression* mathExpression)

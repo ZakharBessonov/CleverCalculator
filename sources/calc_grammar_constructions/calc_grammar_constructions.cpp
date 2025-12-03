@@ -3,6 +3,7 @@
 #include <limits.h>
 #include <math.h>
 #include <ctype.h>
+#include <assert.h>
 
 #include "calc_structs.h"
 #include "calc_grammar_constructions.h"
@@ -17,6 +18,7 @@ extern FILE* logfileCalc;
 extern char* ioFileName;
 extern Operation operations[];
 extern size_t numOfOperations;
+extern FILE* texFile;
 
 // NOTE: Заменить $ на \0
 
@@ -55,18 +57,22 @@ static ssize_t FindOperationByHash(unsigned long hash, const char* spellingOfOpe
 
 static void AddVarInArrayOfVarsIfNeeded(MathExpression* mathExpression, char varIdentifier)
 {
-    Variable wantedVar = {varIdentifier, 0.0};
-    Variable* ptToFirst = GetVariablesPointer(mathExpression);
-    size_t varCounter = (size_t)GetVariablesCounter(mathExpression);
-    ssize_t indexOfVarInArrayOfVars = FindElemInSortedArray(&wantedVar, ptToFirst, varCounter,
-                                                            sizeof(Variable), ComparatorOfVars);
-
-    if (indexOfVarInArrayOfVars == -1)
+    int index = GetVariableIndex(varIdentifier);
+    if (index == -1)
     {
-        InsertElemInSortedArray(&wantedVar, ptToFirst, varCounter,
-                                sizeof(Variable), ComparatorOfVars);
-        IncrementVariablesCounter(mathExpression);
+        return;
     }
+
+    if (GetVarIdentifierFromArrayOfVars(mathExpression, varIdentifier) == varIdentifier)
+    {
+        return;
+    }
+    else
+    {
+        IncrementVariablesCounter(mathExpression);
+        SetVarIdentifierToArrayOfVars(mathExpression, varIdentifier);
+    }
+
 }
 
 static int IsFunc(char* str)
@@ -104,6 +110,8 @@ static Node* CalcNewVarNode(MathExpression* mathExpression, char varIdentifier)
 
 static Node* CalcNewOpNodeWithOneArg(Node* node, OperationCode operationCode)
 {
+    assert(node != NULL);
+
     Node* newOpNode = (Node*)calloc(1, sizeof(Node));
     RET_IF_NULL(newOpNode);
 
@@ -117,6 +125,9 @@ static Node* CalcNewOpNodeWithOneArg(Node* node, OperationCode operationCode)
 
 static Node* CalcNewOpNodeWithTwoArgs(Node* leftNode, Node* rightNode, OperationCode operationCode)
 {
+    assert(leftNode != NULL);
+    assert(rightNode != NULL);
+
     Node* newOpNode = (Node*)calloc(1, sizeof(Node));
     RET_IF_NULL(newOpNode);
 

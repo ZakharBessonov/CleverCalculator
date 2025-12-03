@@ -3,6 +3,10 @@
 
 #include "calc_structs.h"
 
+int GetVariableIndex(char variable);
+
+char GetVariableSpelling(int index);
+
 // Getters
 
 Node* GetRight(Node* node);
@@ -21,11 +25,11 @@ int GetFileCounter(MathExpression* mathExpression);
 
 Variable* GetVariablesPointer(MathExpression* mathExpression);
 
-Variable GetVariable(MathExpression* mathExpression, int index);
+Variable GetVariable(MathExpression* mathExpression, char variable);
 
-char GetVarIdentifierFromArrayOfVars(MathExpression* mathExpression, int index);
+long double GetVariableValue(MathExpression* mathExpression, char variable);
 
-long double GetVariableValue(MathExpression* mathExpression, int index);
+char GetVarIdentifierFromArrayOfVars(MathExpression* mathExpression, char varIdentifier);
 
 int GetVariablesCounter(MathExpression* mathExpression);
 
@@ -57,13 +61,7 @@ int SetFileCounter(MathExpression* mathExpression, int newFileCounter);
 
 int IncrementFileCounter(MathExpression* mathExpression);
 
-int SetVariablesPointer(MathExpression* mathExpression, Variable* newVariablePointer);
-
-int SetVariable(MathExpression* mathExpression, int index, Variable newVariable);
-
-int SetVarIdentifierToArrayOfVars(MathExpression* mathExpression, int index, char newIdentifier);
-
-int SetVariableValue(MathExpression* mathExpression, int index, long double newVarValue);
+int SetVariableValue(MathExpression* mathExpression, char variable, long double newVarValue);
 
 int SetVariablesCounter(MathExpression* mathExpression, int newVariablesCounter);
 
@@ -72,6 +70,8 @@ int IncrementVariablesCounter(MathExpression* mathExpression);
 int SetValue(Node* node, Value newValue);
 
 int SetNumVal(Node* node, long double newNumVal);
+
+int SetVarIdentifierToArrayOfVars(MathExpression* mathExpression, char varIdentifier);
 
 int SetVarIdentifierToNode(Node* node, char newVarIdentifier);
 

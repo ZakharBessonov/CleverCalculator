@@ -9,9 +9,12 @@ extern FILE* logfileCalc;
 extern char* ioFileName;
 extern Operation operations[];
 extern size_t numOfOperations;
+extern FILE* texFile;
 
-static void ProcessNumberOrLabel(FILE* texFile, Node* node)
+static void ProcessNumberOrLabel(Node* node)
 {
+    if (node == NULL) return;
+
     NodeType type = GetTypeNode(node);
     if (type == TYPE_VAR)
     {
@@ -32,8 +35,10 @@ static void ProcessNumberOrLabel(FILE* texFile, Node* node)
     }
 }
 
-void WriteAddInTeX(FILE* texFile, Node* node)
+void WriteAddInTeX(Node* node)
 {
+    if (node == NULL) return;
+
     if (GetParent(node) != NULL && GetOperation(GetParent(node)) == OP_MUL)
     {
         fprintf(texFile, "\\left(");
@@ -45,14 +50,14 @@ void WriteAddInTeX(FILE* texFile, Node* node)
         NodeType typeLeft = GetTypeNode(GetLeft(node));
         NodeType typeRight = GetTypeNode(GetRight(node));
         OperationCode operationCodeLeft = (typeLeft == TYPE_OP) ? GetOperation(GetLeft(node)) : DEFAULT_OP;
-        operations[operationCodeLeft].funcToWritingInTeXFile(texFile, GetLeft(node));
+        operations[operationCodeLeft].funcToWritingInTeXFile(GetLeft(node));
         fprintf(texFile, "+");
         OperationCode operationCodeRight = (typeRight == TYPE_OP) ? GetOperation(GetRight(node)) : DEFAULT_OP;
-        operations[operationCodeRight].funcToWritingInTeXFile(texFile, GetRight(node));
+        operations[operationCodeRight].funcToWritingInTeXFile(GetRight(node));
     }
     else
     {
-        ProcessNumberOrLabel(texFile, node);
+        ProcessNumberOrLabel(node);
     }
 
     if (GetParent(node) != NULL && GetOperation(GetParent(node)) == OP_MUL)
@@ -62,8 +67,10 @@ void WriteAddInTeX(FILE* texFile, Node* node)
 
 }
 
-void WriteSubInTeX(FILE* texFile, Node* node)
+void WriteSubInTeX(Node* node)
 {
+    if (node == NULL) return;
+
     if (GetParent(node) != NULL && GetOperation(GetParent(node)) == OP_MUL)
     {
         fprintf(texFile, "\\left(");
@@ -75,14 +82,14 @@ void WriteSubInTeX(FILE* texFile, Node* node)
         NodeType typeLeft = GetTypeNode(GetLeft(node));
         NodeType typeRight = GetTypeNode(GetRight(node));
         OperationCode operationCodeLeft = (typeLeft == TYPE_OP) ? GetOperation(GetLeft(node)) : DEFAULT_OP;
-        operations[operationCodeLeft].funcToWritingInTeXFile(texFile, GetLeft(node));
+        operations[operationCodeLeft].funcToWritingInTeXFile(GetLeft(node));
         fprintf(texFile, "-");
         OperationCode operationCodeRight = (typeRight == TYPE_OP) ? GetOperation(GetRight(node)) : DEFAULT_OP;
-        operations[operationCodeRight].funcToWritingInTeXFile(texFile, GetRight(node));
+        operations[operationCodeRight].funcToWritingInTeXFile(GetRight(node));
     }
     else
     {
-        ProcessNumberOrLabel(texFile, node);
+        ProcessNumberOrLabel(node);
     }
 
     if (GetParent(node) != NULL && GetOperation(GetParent(node)) == OP_MUL)
@@ -91,27 +98,31 @@ void WriteSubInTeX(FILE* texFile, Node* node)
     }
 }
 
-void WriteMulInTeX(FILE* texFile, Node* node)
+void WriteMulInTeX(Node* node)
 {
+    if (node == NULL) return;
+
     NodeType type = GetTypeNode(node);
     if (type == TYPE_OP)
     {
         NodeType typeLeft = GetTypeNode(GetLeft(node));
         NodeType typeRight = GetTypeNode(GetRight(node));
         OperationCode operationCodeLeft = (typeLeft == TYPE_OP) ? GetOperation(GetLeft(node)) : DEFAULT_OP;
-        operations[operationCodeLeft].funcToWritingInTeXFile(texFile, GetLeft(node));
+        operations[operationCodeLeft].funcToWritingInTeXFile(GetLeft(node));
         fprintf(texFile, " \\cdot ");
         OperationCode operationCodeRight = (typeRight == TYPE_OP) ? GetOperation(GetRight(node)) : DEFAULT_OP;
-        operations[operationCodeRight].funcToWritingInTeXFile(texFile, GetRight(node));
+        operations[operationCodeRight].funcToWritingInTeXFile(GetRight(node));
     }
     else
     {
-        ProcessNumberOrLabel(texFile, node);
+        ProcessNumberOrLabel(node);
     }
 }
 
-void WriteDivInTeX(FILE* texFile, Node* node)
+void WriteDivInTeX(Node* node)
 {
+    if (node == NULL) return;
+
     NodeType type = GetTypeNode(node);
     if (type == TYPE_OP)
     {
@@ -119,20 +130,22 @@ void WriteDivInTeX(FILE* texFile, Node* node)
         NodeType typeRight = GetTypeNode(GetRight(node));
         fprintf(texFile, "\\frac{");
         OperationCode operationCodeLeft = (typeLeft == TYPE_OP) ? GetOperation(GetLeft(node)) : DEFAULT_OP;
-        operations[operationCodeLeft].funcToWritingInTeXFile(texFile, GetLeft(node));
+        operations[operationCodeLeft].funcToWritingInTeXFile(GetLeft(node));
         fprintf(texFile, "}{");
         OperationCode operationCodeRight = (typeRight == TYPE_OP) ? GetOperation(GetRight(node)) : DEFAULT_OP;
-        operations[operationCodeRight].funcToWritingInTeXFile(texFile, GetRight(node));
+        operations[operationCodeRight].funcToWritingInTeXFile(GetRight(node));
         fprintf(texFile, "}");
     }
     else
     {
-        ProcessNumberOrLabel(texFile, node);
+        ProcessNumberOrLabel(node);
     }
 }
 
-void WritePowInTeX(FILE* texFile, Node* node)
+void WritePowInTeX(Node* node)
 {
+    if (node == NULL) return;
+
     NodeType type = GetTypeNode(node);
     if (type == TYPE_OP)
     {
@@ -140,20 +153,22 @@ void WritePowInTeX(FILE* texFile, Node* node)
         NodeType typeRight = GetTypeNode(GetRight(node));
         OperationCode operationCodeLeft = (typeLeft == TYPE_OP) ? GetOperation(GetLeft(node)) : DEFAULT_OP;
         fprintf(texFile, (typeLeft == TYPE_OP) ? "\\left(" : "");
-        operations[operationCodeLeft].funcToWritingInTeXFile(texFile, GetLeft(node));
+        operations[operationCodeLeft].funcToWritingInTeXFile(GetLeft(node));
         fprintf(texFile, (typeLeft == TYPE_OP) ? "\\right)^{" : "^{");
         OperationCode operationCodeRight = (typeRight == TYPE_OP) ? GetOperation(GetRight(node)) : DEFAULT_OP;
-        operations[operationCodeRight].funcToWritingInTeXFile(texFile, GetRight(node));
+        operations[operationCodeRight].funcToWritingInTeXFile(GetRight(node));
         fprintf(texFile, "}");
     }
     else
     {
-        ProcessNumberOrLabel(texFile, node);
+        ProcessNumberOrLabel(node);
     }
 }
 
-void WriteLogInTeX(FILE* texFile, Node* node)
+void WriteLogInTeX(Node* node)
 {
+    if (node == NULL) return;
+
     NodeType type = GetTypeNode(node);
     if (type == TYPE_OP)
     {
@@ -161,235 +176,261 @@ void WriteLogInTeX(FILE* texFile, Node* node)
         NodeType typeRight = GetTypeNode(GetRight(node));
         OperationCode operationCodeLeft = (typeLeft == TYPE_OP) ? GetOperation(GetLeft(node)) : DEFAULT_OP;
         fprintf(texFile,"\\log_{");
-        operations[operationCodeLeft].funcToWritingInTeXFile(texFile, GetLeft(node));
+        operations[operationCodeLeft].funcToWritingInTeXFile(GetLeft(node));
         fprintf(texFile, "}\\left(");
         OperationCode operationCodeRight = (typeRight == TYPE_OP) ? GetOperation(GetRight(node)) : DEFAULT_OP;
-        operations[operationCodeRight].funcToWritingInTeXFile(texFile, GetRight(node));
+        operations[operationCodeRight].funcToWritingInTeXFile(GetRight(node));
         fprintf(texFile, "\\right)");
     }
     else
     {
-        ProcessNumberOrLabel(texFile, node);
+        ProcessNumberOrLabel(node);
     }
 }
 
-void WriteLnInTeX(FILE* texFile, Node* node)
+void WriteLnInTeX(Node* node)
 {
+    if (node == NULL) return;
+
     NodeType type = GetTypeNode(node);
     if (type == TYPE_OP)
     {
         NodeType typeOfSon = GetTypeNode(GetRight(node));
         OperationCode operationCode = (typeOfSon == TYPE_OP) ? GetOperation(GetRight(node)) : DEFAULT_OP;
         fprintf(texFile,"\\ln\\left(");
-        operations[operationCode].funcToWritingInTeXFile(texFile, GetRight(node));
+        operations[operationCode].funcToWritingInTeXFile(GetRight(node));
         fprintf(texFile, "\\right)");
     }
     else
     {
-        ProcessNumberOrLabel(texFile, node);
+        ProcessNumberOrLabel(node);
     }
 }
 
-void WriteSinInTeX(FILE* texFile, Node* node)
+void WriteSinInTeX(Node* node)
 {
+    if (node == NULL) return;
+
     NodeType type = GetTypeNode(node);
     if (type == TYPE_OP)
     {
         NodeType typeOfSon = GetTypeNode(GetRight(node));
         OperationCode operationCode = (typeOfSon == TYPE_OP) ? GetOperation(GetRight(node)) : DEFAULT_OP;
         fprintf(texFile,"\\sin\\left(");
-        operations[operationCode].funcToWritingInTeXFile(texFile, GetRight(node));
+        operations[operationCode].funcToWritingInTeXFile(GetRight(node));
         fprintf(texFile, "\\right)");
     }
     else
     {
-        ProcessNumberOrLabel(texFile, node);
+        ProcessNumberOrLabel(node);
     }
 }
 
-void WriteCosInTeX(FILE* texFile, Node* node)
+void WriteCosInTeX(Node* node)
 {
+    if (node == NULL) return;
+
     NodeType type = GetTypeNode(node);
     if (type == TYPE_OP)
     {
         NodeType typeOfSon = GetTypeNode(GetRight(node));
         OperationCode operationCode = (typeOfSon == TYPE_OP) ? GetOperation(GetRight(node)) : DEFAULT_OP;
         fprintf(texFile,"\\cos\\left(");
-        operations[operationCode].funcToWritingInTeXFile(texFile, GetRight(node));
+        operations[operationCode].funcToWritingInTeXFile(GetRight(node));
         fprintf(texFile, "\\right)");
     }
     else
     {
-        ProcessNumberOrLabel(texFile, node);
+        ProcessNumberOrLabel(node);
     }
 }
 
-void WriteTgInTeX(FILE* texFile, Node* node)
+void WriteTgInTeX(Node* node)
 {
+    if (node == NULL) return;
+
     NodeType type = GetTypeNode(node);
     if (type == TYPE_OP)
     {
         NodeType typeOfSon = GetTypeNode(GetRight(node));
         OperationCode operationCode = (typeOfSon == TYPE_OP) ? GetOperation(GetRight(node)) : DEFAULT_OP;
         fprintf(texFile,"\\tg\\left(");
-        operations[operationCode].funcToWritingInTeXFile(texFile, GetRight(node));
+        operations[operationCode].funcToWritingInTeXFile(GetRight(node));
         fprintf(texFile, "\\right)");
     }
     else
     {
-        ProcessNumberOrLabel(texFile, node);
+        ProcessNumberOrLabel(node);
     }
 }
 
-void WriteCtgInTeX(FILE* texFile, Node* node)
+void WriteCtgInTeX(Node* node)
 {
+    if (node == NULL) return;
+
     NodeType type = GetTypeNode(node);
     if (type == TYPE_OP)
     {
         NodeType typeOfSon = GetTypeNode(GetRight(node));
         OperationCode operationCode = (typeOfSon == TYPE_OP) ? GetOperation(GetRight(node)) : DEFAULT_OP;
         fprintf(texFile,"\\ctg\\left(");
-        operations[operationCode].funcToWritingInTeXFile(texFile, GetRight(node));
+        operations[operationCode].funcToWritingInTeXFile(GetRight(node));
         fprintf(texFile, "\\right)");
     }
     else
     {
-        ProcessNumberOrLabel(texFile, node);
+        ProcessNumberOrLabel(node);
     }
 }
 
-void WriteShInTeX(FILE* texFile, Node* node)
+void WriteShInTeX(Node* node)
 {
+    if (node == NULL) return;
+
     NodeType type = GetTypeNode(node);
     if (type == TYPE_OP)
     {
         NodeType typeOfSon = GetTypeNode(GetRight(node));
         OperationCode operationCode = (typeOfSon == TYPE_OP) ? GetOperation(GetRight(node)) : DEFAULT_OP;
         fprintf(texFile,"\\sh\\left(");
-        operations[operationCode].funcToWritingInTeXFile(texFile, GetRight(node));
+        operations[operationCode].funcToWritingInTeXFile(GetRight(node));
         fprintf(texFile, "\\right)");
     }
     else
     {
-        ProcessNumberOrLabel(texFile, node);
+        ProcessNumberOrLabel(node);
     }
 }
 
-void WriteChInTeX(FILE* texFile, Node* node)
+void WriteChInTeX(Node* node)
 {
+    if (node == NULL) return;
+
     NodeType type = GetTypeNode(node);
     if (type == TYPE_OP)
     {
         NodeType typeOfSon = GetTypeNode(GetRight(node));
         OperationCode operationCode = (typeOfSon == TYPE_OP) ? GetOperation(GetRight(node)) : DEFAULT_OP;
         fprintf(texFile,"\\ch\\left(");
-        operations[operationCode].funcToWritingInTeXFile(texFile, GetRight(node));
+        operations[operationCode].funcToWritingInTeXFile(GetRight(node));
         fprintf(texFile, "\\right)");
     }
     else
     {
-        ProcessNumberOrLabel(texFile, node);
+        ProcessNumberOrLabel(node);
     }
 }
 
-void WriteThInTeX(FILE* texFile, Node* node)
+void WriteThInTeX(Node* node)
 {
+    if (node == NULL) return;
+
     NodeType type = GetTypeNode(node);
     if (type == TYPE_OP)
     {
         NodeType typeOfSon = GetTypeNode(GetRight(node));
         OperationCode operationCode = (typeOfSon == TYPE_OP) ? GetOperation(GetRight(node)) : DEFAULT_OP;
         fprintf(texFile,"\\th\\left(");
-        operations[operationCode].funcToWritingInTeXFile(texFile, GetRight(node));
+        operations[operationCode].funcToWritingInTeXFile(GetRight(node));
         fprintf(texFile, "\\right)");
     }
     else
     {
-        ProcessNumberOrLabel(texFile, node);
+        ProcessNumberOrLabel(node);
     }
 }
 
-void WriteCthInTeX(FILE* texFile, Node* node)
+void WriteCthInTeX(Node* node)
 {
+    if (node == NULL) return;
+
     NodeType type = GetTypeNode(node);
     if (type == TYPE_OP)
     {
         NodeType typeOfSon = GetTypeNode(GetRight(node));
         OperationCode operationCode = (typeOfSon == TYPE_OP) ? GetOperation(GetRight(node)) : DEFAULT_OP;
         fprintf(texFile,"\\cth\\left(");
-        operations[operationCode].funcToWritingInTeXFile(texFile, GetRight(node));
+        operations[operationCode].funcToWritingInTeXFile(GetRight(node));
         fprintf(texFile, "\\right)");
     }
     else
     {
-        ProcessNumberOrLabel(texFile, node);
+        ProcessNumberOrLabel(node);
     }
 }
 
-void WriteArcsinInTeX(FILE* texFile, Node* node)
+void WriteArcsinInTeX(Node* node)
 {
+    if (node == NULL) return;
+
     NodeType type = GetTypeNode(node);
     if (type == TYPE_OP)
     {
         NodeType typeOfSon = GetTypeNode(GetRight(node));
         OperationCode operationCode = (typeOfSon == TYPE_OP) ? GetOperation(GetRight(node)) : DEFAULT_OP;
         fprintf(texFile,"\\arcsin\\left(");
-        operations[operationCode].funcToWritingInTeXFile(texFile, GetRight(node));
+        operations[operationCode].funcToWritingInTeXFile(GetRight(node));
         fprintf(texFile, "\\right)");
     }
     else
     {
-        ProcessNumberOrLabel(texFile, node);
+        ProcessNumberOrLabel(node);
     }
 }
 
-void WriteArccosInTeX(FILE* texFile, Node* node)
+void WriteArccosInTeX(Node* node)
 {
+    if (node == NULL) return;
+
     NodeType type = GetTypeNode(node);
     if (type == TYPE_OP)
     {
         NodeType typeOfSon = GetTypeNode(GetRight(node));
         OperationCode operationCode = (typeOfSon == TYPE_OP) ? GetOperation(GetRight(node)) : DEFAULT_OP;
         fprintf(texFile,"\\arccos\\left(");
-        operations[operationCode].funcToWritingInTeXFile(texFile, GetRight(node));
+        operations[operationCode].funcToWritingInTeXFile(GetRight(node));
         fprintf(texFile, "\\right)");
     }
     else
     {
-        ProcessNumberOrLabel(texFile, node);
+        ProcessNumberOrLabel(node);
     }
 }
 
-void WriteArctgInTeX(FILE* texFile, Node* node)
+void WriteArctgInTeX(Node* node)
 {
+    if (node == NULL) return;
+
     NodeType type = GetTypeNode(node);
     if (type == TYPE_OP)
     {
         NodeType typeOfSon = GetTypeNode(GetRight(node));
         OperationCode operationCode = (typeOfSon == TYPE_OP) ? GetOperation(GetRight(node)) : DEFAULT_OP;
         fprintf(texFile,"\\arctg\\left(");
-        operations[operationCode].funcToWritingInTeXFile(texFile, GetRight(node));
+        operations[operationCode].funcToWritingInTeXFile(GetRight(node));
         fprintf(texFile, "\\right)");
     }
     else
     {
-        ProcessNumberOrLabel(texFile, node);
+        ProcessNumberOrLabel(node);
     }
 }
 
-void WriteArcctgInTeX(FILE* texFile, Node* node)
+void WriteArcctgInTeX(Node* node)
 {
+    if (node == NULL) return;
+
     NodeType type = GetTypeNode(node);
     if (type == TYPE_OP)
     {
         NodeType typeOfSon = GetTypeNode(GetRight(node));
         OperationCode operationCode = (typeOfSon == TYPE_OP) ? GetOperation(GetRight(node)) : DEFAULT_OP;
         fprintf(texFile,"\\arcctg\\left(");
-        operations[operationCode].funcToWritingInTeXFile(texFile, GetRight(node));
+        operations[operationCode].funcToWritingInTeXFile(GetRight(node));
         fprintf(texFile, "\\right)");
     }
     else
     {
-        ProcessNumberOrLabel(texFile, node);
+        ProcessNumberOrLabel(node);
     }
 }

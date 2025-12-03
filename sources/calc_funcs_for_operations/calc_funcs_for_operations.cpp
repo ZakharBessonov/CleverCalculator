@@ -11,6 +11,7 @@
 #include "calc_comparators.h"
 
 extern FILE* logfileCalc;
+extern FILE* texFile;
 
 static int IsInteger(long double num)
 {

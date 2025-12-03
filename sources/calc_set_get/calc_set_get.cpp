@@ -1,9 +1,44 @@
 #include <stdio.h>
+#include <math.h>
 
 #include "calc_structs.h"
 #include "calc_macros.h"
 
 extern FILE* logfileCalc;
+
+int GetVariableIndex(char variable)
+{
+    if (variable >= 'A' && variable <= 'Z')
+    {
+        return variable - 'A';
+    }
+    else if (variable >= 'a' && variable <= 'z')
+    {
+        return ('Z' - 'A' + 1) + variable - 'a';
+    }
+    else
+    {
+        PRINT_LOG_FILE_CALC("ERROR: '%c' is not name of variable.", variable);
+        return -1;
+    }
+}
+
+char GetVariableSpelling(int index)
+{
+    if (index >= 0 && index < 26)
+    {
+        return (char)('A' + index);
+    }
+    else if (index >= 26 && index < 52)
+    {
+        return (char)('a' + index - 26);
+    }
+    else
+    {
+        PRINT_LOG_FILE_CALC("ERROR: Variable index '%d' out of range.", index);
+        return '\0';
+    }
+}
 
 // Getters
 
@@ -84,7 +119,7 @@ int GetFileCounter(MathExpression* mathExpression)
         return -1;
     }
 
-    return mathExpression->fileCounter;
+    return *(mathExpression->fileCounter);
 }
 
 Variable* GetVariablesPointer(MathExpression* mathExpression)
@@ -98,31 +133,35 @@ Variable* GetVariablesPointer(MathExpression* mathExpression)
     return mathExpression->variables;
 }
 
-Variable GetVariable(MathExpression* mathExpression, int index)
+Variable GetVariable(MathExpression* mathExpression, char variable)
 {
+    int index = GetVariableIndex(variable);
+    if (index == -1)
+    {
+        return {'\0', NAN};
+    }
     return mathExpression->variables[index];
 }
 
-char GetVarIdentifierFromArrayOfVars(MathExpression* mathExpression, int index)
+long double GetVariableValue(MathExpression* mathExpression, char variable)
 {
-    if (mathExpression == NULL)
+    int index = GetVariableIndex(variable);
+    if (index == -1)
     {
-        PRINT_LOG_FILE_CALC("ERROR: mathExpression == NULL.");
-        return NULL;
-    }
-
-    return mathExpression->variables[index].identifier;
-}
-
-long double GetVariableValue(MathExpression* mathExpression, int index)
-{
-    if (mathExpression == NULL)
-    {
-        PRINT_LOG_FILE_CALC("ERROR: mathExpression == NULL.");
-        return NULL;
+        return NAN;
     }
 
     return mathExpression->variables[index].value;
+}
+
+char GetVarIdentifierFromArrayOfVars(MathExpression* mathExpression, char varIdentifier)
+{
+    int index = GetVariableIndex(varIdentifier);
+    if (index == -1)
+    {
+        return '\0';
+    }
+    return mathExpression->variables[index].identifier;
 }
 
 int GetVariablesCounter(MathExpression* mathExpression)
@@ -130,7 +169,7 @@ int GetVariablesCounter(MathExpression* mathExpression)
     if (mathExpression == NULL)
     {
         PRINT_LOG_FILE_CALC("ERROR: mathExpression == NULL.");
-        return NULL;
+        return -1;
     }
 
     return mathExpression->variablesCounter;
@@ -172,6 +211,10 @@ OperationCode GetOperation(Node* node)
 
 NodeType GetTypeNode(Node* node)
 {
+    if (node == NULL)
+    {
+       PRINT_LOG_FILE_CALC("ERROR: Node %p == NULL.", node);
+    }
     return node->type;
 }
 
@@ -257,7 +300,7 @@ int SetFileCounter(MathExpression* mathExpression, int newFileCounter)
         return CALC_ERROR_NULL_MATH_EXPRESSION_POINTER;
     }
 
-    mathExpression->fileCounter = newFileCounter;
+    *(mathExpression->fileCounter) = newFileCounter;
     return CALC_OK;
 }
 
@@ -269,48 +312,17 @@ int IncrementFileCounter(MathExpression* mathExpression)
         return CALC_ERROR_NULL_MATH_EXPRESSION_POINTER;
     }
 
-    mathExpression->fileCounter++;
+    (*(mathExpression->fileCounter))++;
     return CALC_OK;
 }
 
-int SetVariablesPointer(MathExpression* mathExpression, Variable* newVariablePointer)
+int SetVariableValue(MathExpression* mathExpression, char variable, long double newVarValue)
 {
-    if (mathExpression == NULL)
+    int index = GetVariableIndex(variable);
+    if (index == -1)
     {
-        PRINT_LOG_FILE_CALC("ERROR: mathExpression == NULL.");
-        return CALC_ERROR_NULL_MATH_EXPRESSION_POINTER;
+        return CALC_NON_EXISTED_VARIABLE;
     }
-
-    mathExpression->variables = newVariablePointer;
-    return CALC_OK;
-}
-
-int SetVariable(MathExpression* mathExpression, int index, Variable newVariable)
-{
-    if (mathExpression == NULL)
-    {
-        PRINT_LOG_FILE_CALC("ERROR: mathExpression == NULL.");
-        return CALC_ERROR_NULL_MATH_EXPRESSION_POINTER;
-    }
-
-    mathExpression->variables[index] = newVariable;
-    return CALC_OK;
-}
-
-int SetVarIdentifierToArrayOfVars(MathExpression* mathExpression, int index, char newIdentifier)
-{
-    if (mathExpression == NULL)
-    {
-        PRINT_LOG_FILE_CALC("ERROR: mathExpression == NULL.");
-        return CALC_ERROR_NULL_MATH_EXPRESSION_POINTER;
-    }
-
-    mathExpression->variables[index].identifier = newIdentifier;
-    return CALC_OK;
-}
-
-int SetVariableValue(MathExpression* mathExpression, int index, long double newVarValue)
-{
     if (mathExpression == NULL)
     {
         PRINT_LOG_FILE_CALC("ERROR: mathExpression == NULL.");
@@ -367,6 +379,17 @@ int SetNumVal(Node* node, long double newNumVal)
 
     node->val.numVal = newNumVal;
     return CALC_OK;
+}
+
+int SetVarIdentifierToArrayOfVars(MathExpression* mathExpression, char varIdentifier)
+{
+    int index = GetVariableIndex(varIdentifier);
+    if (index == -1)
+    {
+        return 1;
+    }
+    mathExpression->variables[index].identifier = varIdentifier;
+    return 0;
 }
 
 int SetVarIdentifierToNode(Node* node, char newVarIdentifier)

@@ -46,4 +46,4 @@ sources=sources/main.cpp\
 		sources/calc_derivatives/calc_derivatives.cpp
 
 all:
-	$(CC) $(sources) -o calculator $(headers) $(flags)
+	$(CC) -g $(sources) -o calculator $(headers) $(flags)

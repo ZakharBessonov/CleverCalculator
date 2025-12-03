@@ -1,11 +1,13 @@
 #include <stdio.h>
 #include <stdlib.h>
+#include <time.h>
 
 #include "calc_structs.h"
 #include "calc_general_funcs.h"
 #include "calc_read_write_to_file.h"
 #include "calc_dump.h"
 #include "calc_macros.h"
+#include "calc_simplification.h"
 
 extern FILE* logfileCalc;
 extern char* ioFileName;
@@ -13,6 +15,7 @@ extern char* ioFileName;
 int main(int argc, char *argv[])
 {
     atexit(CloseLogFileCalc);
+    srand(time(NULL));
 
     if (OpenLogFileCalc())
     {
@@ -34,16 +37,22 @@ int main(int argc, char *argv[])
     CalcCreateTree(&expression);
     CALL_DUMP(&expression, "After reading");
 
-    CalcWriteExpressionToTeXFile(&expression, "Начнём с простого", "Имеем то, что имеем");
+    CalcOpenTexFileAndWritePreamble();
+    CalcWriteExpressionToTeXFile(&expression, "Начнём с простого");
 
     CalcStart(&expression);
 
-    //CalcSimplifyExpression(&expression);
+    CalcSimplifyExpression(&expression);
+
+    CALL_DUMP(&expression, "After simplifying");
+    //CalcWriteExpressionToTeXFile(&expression, "После упрощения получилось: ");
+
     //CalcWriteTreeToFile(&expression);
     //CALL_DUMP(&expression, "After adding new elem");
     CalcFinishTeXFile();
 
     CalcDtor(&expression);
+    FileCounterDtor(&expression);
 
     return 0;
 }

@@ -14,6 +14,7 @@ const OperationCode  DEFAULT_OP = OP_MUL;
 const NumOfArgs      DEFAULT_NUM_OF_ARGS = ONE_ARG;
 const long double    EPSILON = 0.0000000001;
 const long double    PI = 3.1415926536;
+const int            MAX_NUM_OF_VARIABLES = 52;
 
 const char * const COLOR_FOR_OPERATIONS = "#a6c6ff";
 const char * const COLOR_FOR_VARS = "#fabb72";

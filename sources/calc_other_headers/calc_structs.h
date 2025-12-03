@@ -68,8 +68,9 @@ struct Operation
     NumOfArgs     numOfArgs;
     const char*   spellingOfOperation;
     long double   (*funcForOperation)(DataForCounting);
-    void          (*funcToWritingInTeXFile)(FILE*, Node*);
-    Node*         (*funcForDerivative)(Node*);
+    void          (*funcToWritingInTeXFile)(Node*);
+    Node*         (*funcForDerivative)(Node*, char);
+    void          (*funcForRemoveNeutralElem)(Node*, int*);
 };
 
 struct Variable
@@ -83,8 +84,8 @@ struct MathExpression
     Node*      root;
     char*      buffer;
     size_t     lenOfBuffer;
-    int        fileCounter;
-    Variable*  variables;       //NOTE Здесь можно поменять на статический массив фиксированной длины
+    int*       fileCounter;
+    Variable   variables[52];       // 52 - max number of variables
     int        variablesCounter;
 };
 
@@ -93,6 +94,7 @@ enum CalcError
     CALC_OK = 0,
     CALC_ERROR_NULL_NODE_POINTER = 1,
     CALC_ERROR_NULL_MATH_EXPRESSION_POINTER = 2,
+    CALC_NON_EXISTED_VARIABLE = 4
 };
 
 enum Sons

@@ -52,18 +52,3 @@ ssize_t FindElemInSortedArray(void* wanted, void* first, size_t count,
 
     return -1;
 }
-
-void InsertElemInSortedArray(void* insertElem, void* first, size_t count,
-                             size_t size, int (*comparator) (const void*, const void*))
-{
-    void* last = (void*)((size_t)first + count * size);
-    size_t indexToInsert = BinarySearch(insertElem, first, last, size, comparator);
-    void* pointerToInsert = (void*)((size_t)first + indexToInsert * size);
-
-    for (size_t i = count; i > indexToInsert; i--)
-    {
-        memcpy((void*)((size_t)first + i * size), (void*)((size_t)first + (i - 1) * size), size);
-    }
-
-    memcpy(pointerToInsert, insertElem, size);
-}

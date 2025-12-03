@@ -1,6 +1,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <stdarg.h>
 #include <ctype.h>
 
 #include "calc_structs.h"
@@ -21,6 +22,7 @@ extern FILE* logfileCalc;
 extern char* ioFileName;
 extern Operation operations[];
 extern size_t numOfOperations;
+FILE* texFile = NULL;
 
 // Reading
 
@@ -111,66 +113,55 @@ void CalcCreateTree(MathExpression* mathExpression)
     SetRoot(mathExpression, GetG(mathExpression, &curPos));
     fprintf(logfileCalc, "\n</pre>\n");
 
+    free(GetBufferPointer(mathExpression));
+    SetBufferPointer(mathExpression, NULL);
     qsort(operations, numOfOperations, sizeof(Operation), ComparatorOfOperationsByCodes);
 }
 
 // Writing
 
-static void CalcWritePreamble(FILE* texFile)
+void CalcOpenTexFileAndWritePreamble()
 {
-    fprintf(texFile, "\\documentclass{article}\n"
-                     "\\usepackage[T2A]{fontenc}\n"
-                     "\\usepackage[utf8]{inputenc}\n"
-                     "\\usepackage[russian]{babel}\n"
-                     "\\begin{document}\n"
-                     "Итак, самое время заняться нашим любимым делом - вычислениями!\n");
-}
-
-void CalcWriteExpressionToTeXFile(MathExpression* mathExpression, const char* message, const char* title)
-{
-    static int IsThisFirstOpening = 1;
-    FILE* texFile = NULL;
-    if (IsThisFirstOpening == 1)
-    {
-        texFile = fopen("texFile.tex", "w");
-    }
-    else
-    {
-        texFile = fopen("texFile.tex", "a");
-    }
-
+    texFile = fopen("texFile.tex", "w");
     if (texFile == NULL)
     {
         PRINT_LOG_FILE_CALC("ERROR: An error was occurred while opening texFile.tex\n");
         return;
     }
+    fprintf(texFile, "\\documentclass[a4paper]{article}\n"
+                     "\\usepackage[T2A]{fontenc}\n"
+                     "\\usepackage[utf8]{inputenc}\n"
+                     "\\usepackage[russian]{babel}\n"
+                     "\\usepackage{breqn}\n"
+                     "\\usepackage[left=2cm, top=2cm, right=2cm, bottom=2cm]{geometry}\n"
+                     "\\begin{document}\n");
+    fflush(texFile);
+}
 
-    if (IsThisFirstOpening == 1)
-    {
-        CalcWritePreamble(texFile);
-        IsThisFirstOpening--;
-    }
+void CalcWriteExpressionToTeXFile(MathExpression* mathExpression, const char* message)
+{
+    fprintf(texFile, "%s\n\\begin{dmath}\n", message);
+    Node* root = GetRoot(mathExpression);
+    OperationCode operationCode = (GetTypeNode(root) == TYPE_OP) ? GetOperation(root) : DEFAULT_OP;
+    operations[operationCode].funcToWritingInTeXFile(GetRoot(mathExpression));
+    fprintf(texFile, "\n\\end{dmath}\n");
+    fflush(texFile);
+}
 
-    fprintf(texFile, "%s\\\\\n"
-                     "\\centerline{\\textbf{%s}}\n"
-                     "\\begin{equation}\n" , message, title);
-    OperationCode operationCode = GetOperation(GetRoot(mathExpression));
-    operations[operationCode].funcToWritingInTeXFile(texFile, GetRoot(mathExpression));
-    fprintf(texFile, "\n\\end{equation}\n");
+void CalcWriteTitleToTexFile(const char* title, ...)
+{
+    va_list args = NULL;
+    va_start(args, title);
+    char tempStr[MAX_SIZE_OF_STRING] = "";
 
-    CalcSimplifyExpression(mathExpression);
-    CALL_DUMP(mathExpression, "After simplification");
-    fprintf(texFile, "После упрощения неожиданно получилось вот это:\n"
-                     "\\begin{equation}\n");
-    operationCode = GetOperation(GetRoot(mathExpression));
-    operations[operationCode].funcToWritingInTeXFile(texFile, GetRoot(mathExpression));
-    fprintf(texFile, "\n\\end{equation}\n");
-    fclose(texFile);
+    vsnprintf(tempStr, MAX_SIZE_OF_STRING - 1, title, args);
+
+    fprintf(texFile, "\\centerline{\\textbf{%s}}\n", tempStr);
+    fflush(texFile);
 }
 
 void CalcFinishTeXFile()
 {
-    FILE* texFile = fopen("texFile.tex", "a");
     fprintf(texFile, "\n\\end{document}\n");
     fclose(texFile);
 }

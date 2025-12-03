@@ -6,7 +6,4 @@ size_t BinarySearch(void* wanted, void* first, void* last, size_t size, int (*co
 ssize_t FindElemInSortedArray(void* wanted, void* first, size_t count,
                               size_t size, int (*comparator) (const void*, const void*));
 
-void InsertElemInSortedArray(void* insertElem, void* first, size_t count,
-                             size_t size, int (*comparator) (const void*, const void*));
-
 #endif
