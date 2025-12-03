@@ -17,12 +17,14 @@
 #include "calc_dump.h"
 #include "calc_read_write_to_file.h"
 #include "calc_simplification.h"
+#include "calc_dsl.h"
 
 extern Operation operations[];
 extern size_t numOfOperations;
 extern FILE* logfileCalc;
 extern FILE* texFile;
 int phraseCounter = 0;
+int isNeedToWriteDerivativesInTeX = 0;
 
 static long double ScanfValueOfVar()
 {
@@ -44,6 +46,27 @@ static long double ScanfValueOfVar()
     }
 
     return tempVal;
+}
+
+static int InputPoint(long double* point)
+{
+    int result = scanf("%Lf", point);
+    while (getchar() != '\n');
+
+    while (result <= 0)
+    {
+        if (result == EOF)
+        {
+            cprintf(RED, "\nВведён символ конца файла. Программа завершена.\n");
+            return 1;
+        }
+
+        cprintf(RED, "Некорректный ввод. Повторите ввод: ");
+        result = scanf("%Lf", point);
+        while (getchar() != '\n');
+    }
+
+    return 0;
 }
 
 static int CalcChooseVarDifferentiation(MathExpression* mathExpression, char* varDifferentiation)
@@ -69,13 +92,35 @@ static int CalcChooseVarDifferentiation(MathExpression* mathExpression, char* va
     return 0;
 }
 
-static int CalcChooseOrderOfDerivative(MathExpression* mathExpression, int* orderOfDerivative)
+static int FindVarDifferentiation(MathExpression* mathExpression, char* varDifferentiation)
 {
-    printf("Выберите порядок производной (>= 1): ");
+    Variable* varPointer = GetVariablesPointer(mathExpression);
+    int tempVarCounter = 0;
+
+    for (int i = 0; i < MAX_NUM_OF_VARIABLES; i++)
+    {
+        if (varPointer[i].identifier == GetVariableSpelling(i))
+        {
+            tempVarCounter++;
+            *varDifferentiation = GetVariableSpelling(i);
+        }
+
+        if (tempVarCounter >= 2)
+        {
+            *varDifferentiation = '\0';
+            return 1;
+        }
+    }
+
+    return !(tempVarCounter == 1);
+}
+
+static int CalcChooseOrder(MathExpression* mathExpression, int* orderOfDerivative)
+{
     int result = scanf("%d", orderOfDerivative);
     while (getchar() != '\n');
 
-    while (result <= 0 || *orderOfDerivative <= 0)
+    while (result <= 0 || *orderOfDerivative < 0)
     {
         if (result == EOF)
         {
@@ -161,45 +206,6 @@ static Node* CalcNewNumNode(long double number)
     return newNumNode;
 }
 
-Node* CalcDifferentiate(Node* node, char varDifferentiation)
-{
-    NodeType type = GetTypeNode(node);
-    Node* newNode = NULL;
-
-    if (type == TYPE_NUMBER || (type == TYPE_VAR && GetVarIdentifierFromNode(node) != varDifferentiation))
-    {
-        newNode = CalcNewNumNode(0);
-        WriteDerivative(node, newNode, varDifferentiation);
-        return CalcNewNumNode(0);
-    }
-    else if (type == TYPE_VAR)
-    {
-        newNode = CalcNewNumNode(1);
-        WriteDerivative(node, newNode, varDifferentiation);
-        return CalcNewNumNode(1);
-    }
-    else
-    {
-        OperationCode operationCode = GetOperation(node);
-        return operations[operationCode].funcForDerivative(node, varDifferentiation);
-    }
-}
-
-void WriteDerivative(Node* node, Node* dNode, char varDifferentiation)
-{
-    phraseCounter = rand() % numOfPhrases;
-    fprintf(texFile, "%s\n\\begin{dmath}\n"
-                     "\\frac{d}{d%c}\\left(", phrases[phraseCounter], varDifferentiation);
-    OperationCode operationCode = (GetTypeNode(node) == TYPE_OP) ? GetOperation(node) : DEFAULT_OP;
-    operations[operationCode].funcToWritingInTeXFile(node);
-
-    fprintf(texFile, "\\right)=");
-    operationCode = (GetTypeNode(dNode) == TYPE_OP) ? GetOperation(dNode) : DEFAULT_OP;
-    operations[operationCode].funcToWritingInTeXFile(dNode);
-    fprintf(texFile, "\n\\end{dmath}\n");
-    fflush(texFile);
-}
-
 static long double CalcCountNode(MathExpression* mathExpression, Node* node)
 {
     NodeType nodeType = GetTypeNode(node);
@@ -231,6 +237,88 @@ static long double CalcCountNode(MathExpression* mathExpression, Node* node)
     }
 }
 
+static void PrintTaylorSeriesAndPlotGraphs(MathExpression* mathExpression, long double* coefficients,
+                                           int order, char var, long double x0)
+{
+    CalcWriteTitleToTexFile("Разложение заданной функции в ряд Тейлора до %d-ого порядка:", order);
+    fprintf(texFile, "\\begin{dmath}\n"
+                     "f(%c) = ", var);
+    int IsMaclaurin = IsEqual(x0, 0.0);
+
+    for (int i = 0; i <= order; i++)
+    {
+        if (IsEqual(coefficients[i], 0.0))
+        {
+            continue;
+        }
+
+        if (i == 0)
+        {
+            fprintf(texFile, "%Lg", coefficients[i]);
+            continue;
+        }
+
+        if (IsMaclaurin)
+        {
+            fprintf(texFile, "%+Lg%c^{%d}", coefficients[i], var, i);
+        }
+        else
+        {
+            fprintf(texFile, "%+Lg\\cdot(%c%c%Lg)^{%d}", coefficients[i], var, (x0 > 0) ? '-' : '+', x0, i);
+        }
+    }
+    if (IsMaclaurin)
+    {
+        fprintf(texFile, "+o(%c^{%d})\n"
+                         "\\end{dmath}\n", var, order);
+    }
+    else
+    {
+        fprintf(texFile, "+o((%c%c%Lg)^{%d})\n"
+                         "\\end{dmath}\n", var, (x0 > 0) ? '-' : '+', x0, order);
+    }
+    fflush(texFile);
+}
+
+Node* CalcDifferentiate(Node* node, char varDifferentiation)
+{
+    NodeType type = GetTypeNode(node);
+    Node* newNode = NULL;
+
+    if (type == TYPE_NUMBER || (type == TYPE_VAR && GetVarIdentifierFromNode(node) != varDifferentiation))
+    {
+        newNode = CalcNewNumNode(0);
+        $(WriteDerivative(node, newNode, varDifferentiation));
+        return CalcNewNumNode(0);
+    }
+    else if (type == TYPE_VAR)
+    {
+        newNode = CalcNewNumNode(1);
+        $(WriteDerivative(node, newNode, varDifferentiation));
+        return CalcNewNumNode(1);
+    }
+    else
+    {
+        OperationCode operationCode = GetOperation(node);
+        return operations[operationCode].funcForDerivative(node, varDifferentiation);
+    }
+}
+
+void WriteDerivative(Node* node, Node* dNode, char varDifferentiation)
+{
+    phraseCounter = rand() % numOfPhrases;
+    fprintf(texFile, "%s\n\\begin{dmath}\n"
+                     "\\frac{d}{d%c}\\left(", phrases[phraseCounter], varDifferentiation);
+    OperationCode operationCode = (GetTypeNode(node) == TYPE_OP) ? GetOperation(node) : DEFAULT_OP;
+    operations[operationCode].funcToWritingInTeXFile(node);
+
+    fprintf(texFile, "\\right)=");
+    operationCode = (GetTypeNode(dNode) == TYPE_OP) ? GetOperation(dNode) : DEFAULT_OP;
+    operations[operationCode].funcToWritingInTeXFile(dNode);
+    fprintf(texFile, "\n\\end{dmath}\n");
+    fflush(texFile);
+}
+
 int CalcCountExpression(MathExpression* mathExpression)
 {
     if (CalcSetValuesOfVars(mathExpression))
@@ -246,12 +334,14 @@ int CalcCountDerivative(MathExpression* mathExpression)
 {
     char varDifferentiation = '\0';
     int orderOfDerivative = 0;
+    isNeedToWriteDerivativesInTeX = 1;
     if (CalcChooseVarDifferentiation(mathExpression, &varDifferentiation))
     {
         return 1;
     }
 
-    if (CalcChooseOrderOfDerivative(mathExpression, &orderOfDerivative))
+    printf("Выберите порядок производной (>= 1; если введёте 0, то ничего не произойдёт): ");
+    if (CalcChooseOrder(mathExpression, &orderOfDerivative))
     {
         return 1;
     }
@@ -276,12 +366,63 @@ int CalcCountDerivative(MathExpression* mathExpression)
         CalcDtor(&totalDerivative);
     }
 
+    CalcDtor(&tempDerivative);
     return 0;
 }
 
 int CalcCountTaylorSeries(MathExpression* mathExpression)
 {
-    return 1;
+    char varDifferentiation = '\0';
+    int order = 0;
+    long double x0 = 0.0;
+    isNeedToWriteDerivativesInTeX = 0;
+    if (FindVarDifferentiation(mathExpression, &varDifferentiation))
+    {
+        cprintf(RED, "Переменная должна быть одна!\n");
+        return 1;
+    }
+
+    printf("Выберите порядок, до которого хотите разложиться (=>0): ");
+    if (CalcChooseOrder(mathExpression, &order))
+    {
+        return 1;
+    }
+
+    printf("Выберите точку, в которой хотите разложиться: ");
+    if (InputPoint(&x0))
+    {
+        return 1;
+    }
+    SetVariableValue(mathExpression, varDifferentiation, x0);
+
+    long double* coefficients = (long double*)calloc((size_t)order + 1, sizeof(long double));
+    coefficients[0] = CalcCountNode(mathExpression, GetRoot(mathExpression));
+
+    MathExpression tempDerivative = {};
+    MathExpression totalDerivative = {};
+
+    CopyExpression(&tempDerivative, mathExpression);
+    int fact = 1;
+
+    for (int i = 1; i <= order; i++)
+    {
+        CopyExpression(&totalDerivative, &tempDerivative);
+        // CALL_DUMP(&totalDerivative, "Before differentiation (derivative (%d))", i - 1);
+        SetRoot(&totalDerivative, CalcDifferentiate(GetRoot(&tempDerivative), varDifferentiation));
+        // CALL_DUMP(&totalDerivative, "Before simplification (derivative (%d))", i);
+        CalcSimplifyExpression(&totalDerivative);
+        // CALL_DUMP(&totalDerivative, "Derivative (%d)", i);
+        CalcDtor(&tempDerivative);
+        CopyExpression(&tempDerivative, &totalDerivative);
+        CalcDtor(&totalDerivative);
+        coefficients[i] = CalcCountNode(&tempDerivative, GetRoot(&tempDerivative)) / (long double)(fact *= i);
+    }
+
+    CalcDtor(&tempDerivative);
+
+    PrintTaylorSeriesAndPlotGraphs(mathExpression, coefficients, order, varDifferentiation, x0);
+    free(coefficients);
+    return 0;
 }
 
 int CalcPlotGraph(MathExpression* mathExpression)

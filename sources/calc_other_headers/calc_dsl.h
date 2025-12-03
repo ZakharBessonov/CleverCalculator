@@ -1,6 +1,9 @@
 #ifndef CALC_DSL_HEADER
 #define CALC_DSL_HEADER
 
+#define BEGIN do
+#define END while(false)
+
 #define cpy_(X)        CopyNode(X)
 #define d_(X)          CalcDifferentiate(X, varDifferentiation)
 #define ADD_(X, Y)     CalcNewOpNodeWithTwoArgs(X, Y, OP_ADD)
@@ -24,5 +27,9 @@
 #define ARCCOS_(X)     CalcNewOpNodeWithOneArg(X, OP_ARCCOS)
 #define ARCTG_(X)      CalcNewOpNodeWithOneArg(X, OP_ARCTG)
 #define ARCCTG_(X)     CalcNewOpNodeWithOneArg(X, OP_ARCCTG)
+
+
+#define PREF_OP_(X)    GetOperation(GetParent(X))
+#define $(X)           BEGIN { if (isNeedToWriteDerivativesInTeX) X;} END
 
 #endif

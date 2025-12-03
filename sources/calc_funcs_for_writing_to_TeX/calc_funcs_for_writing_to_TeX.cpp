@@ -4,6 +4,8 @@
 #include "calc_consts.h"
 #include "calc_funcs_for_writing_to_TeX.h"
 #include "calc_set_get.h"
+#include "calc_dsl.h"
+#include "calc_comparators.h"
 
 extern FILE* logfileCalc;
 extern char* ioFileName;
@@ -11,9 +13,36 @@ extern Operation operations[];
 extern size_t numOfOperations;
 extern FILE* texFile;
 
+static int AnalyzeTheLocationOfNegNum(Node* node)
+{
+    Node* parent = GetParent(node);
+    if (parent == NULL)
+    {
+        return 1;
+    }
+    Node* right = GetRight(parent);
+    Node* left = GetLeft(parent);
+
+    if (GetOperation(parent) == OP_POW)
+    {
+        return node == right;
+    }
+    else if (GetOperation(parent) == OP_LOG)
+    {
+        return node == left;
+    }
+    else if (GetOperation(parent) != OP_ADD && GetOperation(parent) != OP_SUB && GetOperation(parent) != OP_MUL)
+    {
+        return 1;
+    }
+
+    return 0;
+}
+
 static void ProcessNumberOrLabel(Node* node)
 {
     if (node == NULL) return;
+    int mayWeDontUseBracketsForNegNum = 0;
 
     NodeType type = GetTypeNode(node);
     if (type == TYPE_VAR)
@@ -25,6 +54,11 @@ static void ProcessNumberOrLabel(Node* node)
         long double number = 0.0;
         GetNumVal(node, &number);
         if (number < 0)
+        {
+            mayWeDontUseBracketsForNegNum = AnalyzeTheLocationOfNegNum(node);
+        }
+
+        if (number < 0 && !mayWeDontUseBracketsForNegNum)
         {
             fprintf(texFile, "(%Lg)", number);
         }

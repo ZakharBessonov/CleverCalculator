@@ -13,6 +13,7 @@
 #include "calc_dsl.h"
 
 extern FILE* texFile;
+extern int isNeedToWriteDerivativesInTeX;
 
 static Node* CalcNewOpNodeWithTwoArgs(Node* leftNode, Node* rightNode, OperationCode operationCode)
 {
@@ -114,7 +115,7 @@ Node* TakeDerivativeAdd(Node* node, char varDifferentiation)
     Node* left = GetLeft(node);
     Node* right = GetRight(node);
     Node* result = ADD_(d_(left), d_(right));
-    WriteDerivative(node, result, varDifferentiation);
+    $(WriteDerivative(node, result, varDifferentiation));
     return result;
 }
 //NOTE Не закладывать заранее на множество всего
@@ -124,7 +125,7 @@ Node* TakeDerivativeSub(Node* node, char varDifferentiation)
     Node* left = GetLeft(node);
     Node* right = GetRight(node);
     Node* result = SUB_(d_(left), d_(right));
-    WriteDerivative(node, result, varDifferentiation);
+    $(WriteDerivative(node, result, varDifferentiation));
     return result;
 }
 
@@ -133,7 +134,7 @@ Node* TakeDerivativeMul(Node* node, char varDifferentiation)
     Node* left = GetLeft(node);
     Node* right = GetRight(node);
     Node* result = ADD_(MUL_(cpy_(left), d_(right)), MUL_(cpy_(right), d_(left)));
-    WriteDerivative(node, result, varDifferentiation);
+    $(WriteDerivative(node, result, varDifferentiation));
     return result;
 }
 
@@ -143,7 +144,7 @@ Node* TakeDerivativeDiv(Node* node, char varDifferentiation)
     Node* right = GetRight(node);
     Node* helpNode = CalcNewNumNode(2);
     Node* result = DIV_(SUB_(MUL_(cpy_(right), d_(left)), MUL_(cpy_(left), d_(right))), POW_(cpy_(right), helpNode));
-    WriteDerivative(node, result, varDifferentiation);
+    $(WriteDerivative(node, result, varDifferentiation));
     return result;
 }
 
@@ -174,7 +175,7 @@ Node* TakeDerivativePow(Node* node, char varDifferentiation)
         result = MUL_(cpy_(node), ADD_(MUL_(d_(right), LN_(cpy_(left))), MUL_(cpy_(right), DIV_(d_(left), cpy_(left)))));
     }
 
-    WriteDerivative(node, result, varDifferentiation);
+    $(WriteDerivative(node, result, varDifferentiation));
     return result;
 }
 
@@ -210,7 +211,7 @@ Node* TakeDerivativeLog(Node* node, char varDifferentiation)
                       POW_(LN_(cpy_(left)), helpNode1));
     }
 
-    WriteDerivative(node, result, varDifferentiation);
+    $(WriteDerivative(node, result, varDifferentiation));
     return result;
 }
 
@@ -248,7 +249,7 @@ Node* TakeDerivativeRoot(Node* node, char varDifferentiation)
                                        MUL_(DIV_(d_(left), POW_(cpy_(left), helpNode1)), LN_(cpy_(right)))));
     }
 
-    WriteDerivative(node, result, varDifferentiation);
+    $(WriteDerivative(node, result, varDifferentiation));
     return result;
 }
 
@@ -258,7 +259,7 @@ Node* TakeDerivativeSqrt(Node* node, char varDifferentiation)
     Node* helpNode1 = CalcNewNumNode(0.5);
     Node* helpNode2 = CalcNewNumNode(-0.5);
     Node* result = MUL_(MUL_(helpNode1, POW_(cpy_(right), helpNode2)), d_(right));
-    WriteDerivative(node, result, varDifferentiation);
+    $(WriteDerivative(node, result, varDifferentiation));
     return result;
 }
 
@@ -267,7 +268,7 @@ Node* TakeDerivativeLn(Node* node, char varDifferentiation)
     Node* right = GetRight(node);
     Node* helpNode = CalcNewNumNode(1);
     Node* result = MUL_(DIV_(helpNode, cpy_(right)), d_(right));
-    WriteDerivative(node, result, varDifferentiation);
+    $(WriteDerivative(node, result, varDifferentiation));
     return result;
 }
 
@@ -275,7 +276,7 @@ Node* TakeDerivativeSin(Node* node, char varDifferentiation)
 {
     Node* right = GetRight(node);
     Node* result = MUL_(COS_(cpy_(right)), d_(right));
-    WriteDerivative(node, result, varDifferentiation);
+    $(WriteDerivative(node, result, varDifferentiation));
     return result;
 }
 
@@ -284,7 +285,7 @@ Node* TakeDerivativeCos(Node* node, char varDifferentiation)
     Node* right = GetRight(node);
     Node* helpNode = CalcNewNumNode(-1);
     Node* result = MUL_(MUL_(SIN_(cpy_(right)), helpNode), d_(right));
-    WriteDerivative(node, result, varDifferentiation);
+    $(WriteDerivative(node, result, varDifferentiation));
     return result;
 }
 
@@ -294,7 +295,7 @@ Node* TakeDerivativeTg(Node* node, char varDifferentiation)
     Node* helpNode1 = CalcNewNumNode(1);
     Node* helpNode2 = CalcNewNumNode(2);
     Node* result = MUL_(DIV_(helpNode1, POW_(COS_(cpy_(right)), helpNode2)), d_(right));
-    WriteDerivative(node, result, varDifferentiation);
+    $(WriteDerivative(node, result, varDifferentiation));
     return result;
 }
 
@@ -304,7 +305,7 @@ Node* TakeDerivativeCtg(Node* node, char varDifferentiation)
     Node* helpNode1 = CalcNewNumNode(-1);
     Node* helpNode2 = CalcNewNumNode(2);
     Node* result = MUL_(DIV_(helpNode1, POW_(SIN_(cpy_(right)), helpNode2)), d_(right));
-    WriteDerivative(node, result, varDifferentiation);
+    $(WriteDerivative(node, result, varDifferentiation));
     return result;
 }
 
@@ -312,7 +313,7 @@ Node* TakeDerivativeSh(Node* node, char varDifferentiation)
 {
     Node* right = GetRight(node);
     Node* result = MUL_(CH_(cpy_(right)), d_(right));
-    WriteDerivative(node, result, varDifferentiation);
+    $(WriteDerivative(node, result, varDifferentiation));
     return result;
 }
 
@@ -320,7 +321,7 @@ Node* TakeDerivativeCh(Node* node, char varDifferentiation)
 {
     Node* right = GetRight(node);
     Node* result = MUL_(SH_(cpy_(right)), d_(right));
-    WriteDerivative(node, result, varDifferentiation);
+    $(WriteDerivative(node, result, varDifferentiation));
     return result;
 }
 
@@ -330,7 +331,7 @@ Node* TakeDerivativeTh(Node* node, char varDifferentiation)
     Node* helpNode1 = CalcNewNumNode(1);
     Node* helpNode2 = CalcNewNumNode(2);
     Node* result = MUL_(DIV_(helpNode1, POW_(CH_(cpy_(right)), helpNode2)), d_(right));
-    WriteDerivative(node, result, varDifferentiation);
+    $(WriteDerivative(node, result, varDifferentiation));
     return result;
 }
 
@@ -340,26 +341,50 @@ Node* TakeDerivativeCth(Node* node, char varDifferentiation)
     Node* helpNode1 = CalcNewNumNode(-1);
     Node* helpNode2 = CalcNewNumNode(2);
     Node* result = MUL_(DIV_(helpNode1, POW_(SH_(cpy_(right)), helpNode2)), d_(right));
-    WriteDerivative(node, result, varDifferentiation);
+    $(WriteDerivative(node, result, varDifferentiation));
     return result;
 }
 
 Node* TakeDerivativeArcsin(Node* node, char varDifferentiation)
 {
-    return NULL;
+    Node* right = GetRight(node);
+    Node* helpNode1 = CalcNewNumNode(1);
+    Node* helpNode2 = CalcNewNumNode(1);
+    Node* helpNode3 = CalcNewNumNode(2);
+    Node* result = MUL_(DIV_(helpNode1, SQRT_(SUB_(helpNode2, POW_(cpy_(right), helpNode3)))), d_(right));
+    $(WriteDerivative(node, result, varDifferentiation));
+    return result;
 }
 
 Node* TakeDerivativeArccos(Node* node, char varDifferentiation)
 {
-    return NULL;
+    Node* right = GetRight(node);
+    Node* helpNode1 = CalcNewNumNode(-1);
+    Node* helpNode2 = CalcNewNumNode(1);
+    Node* helpNode3 = CalcNewNumNode(2);
+    Node* result = MUL_(DIV_(helpNode1, SQRT_(SUB_(helpNode2, POW_(cpy_(right), helpNode3)))), d_(right));
+    $(WriteDerivative(node, result, varDifferentiation));
+    return result;
 }
 
 Node* TakeDerivativeArctg(Node* node, char varDifferentiation)
 {
-    return NULL;
+    Node* right = GetRight(node);
+    Node* helpNode1 = CalcNewNumNode(1);
+    Node* helpNode2 = CalcNewNumNode(1);
+    Node* helpNode3 = CalcNewNumNode(2);
+    Node* result = MUL_(DIV_(helpNode1, ADD_(helpNode2, POW_(cpy_(right), helpNode3))), d_(right));
+    $(WriteDerivative(node, result, varDifferentiation));
+    return result;
 }
 
 Node* TakeDerivativeArcctg(Node* node, char varDifferentiation)
 {
-    return NULL;
+    Node* right = GetRight(node);
+    Node* helpNode1 = CalcNewNumNode(-1);
+    Node* helpNode2 = CalcNewNumNode(1);
+    Node* helpNode3 = CalcNewNumNode(2);
+    Node* result = MUL_(DIV_(helpNode1, ADD_(helpNode2, POW_(cpy_(right), helpNode3))), d_(right));
+    $(WriteDerivative(node, result, varDifferentiation));
+    return result;
 }

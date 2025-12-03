@@ -22,57 +22,42 @@ static void CalcShowWelcomeMessage()
     cprintf(CYAN, "Умный Калькулятор 1.0.0\n");
 }
 
-static int CalcConvertStrOfOptionsToNum(char* tempStr, int lenOfStr)
-{
-    int chosenOptions = 0;
-    for (int i = 0; i < lenOfStr; i++)
-    {
-        if (tempStr[i] <= '0' || tempStr[i] > '0' + (int)numOfFunctionsForOptions)
-        {
-            cprintf(RED, "Некорректный номер операции '%c'.\n", tempStr[i]);
-            return 0;
-        }
-        chosenOptions += (int)lroundl(powl(2.0, (long double)((int)(tempStr[i] - '0') - 1)));
-    }
-
-    return chosenOptions;
-}
-
 static void CalcShowMenu()
 {
     cprintf(CYAN, "Было прочитано выражение из файла %s. Выберите, что вы хотите сделать с этим выражением:\n"
             "1) Вычислить\n"
             "2) Посчитать производную заданного порядка по выбранной переменной\n"
             "3) Разложить в ряд Тейлора в окрестности заданной точки до заданного порядка (в случае одной переменной)\n"
+            "   и построить график функции и её тейлоровского разложения\n"
             "4) Построить график выражения (только, если переменная одна)\n"
             "5) Построить касательную к графику в данной точке (только, если переменная одна)\n"
             "6) Вычислить выражение с учётом погрешности, если известны погрешности переменных\n"
-            "Ваш выбор (вы можете выбрать несколько опций сразу, тогда нужно записать их подряд без пробелов): ",
+            "7) Выход\n"
+            "Ваш выбор: ",
             ioFileName);
 
 }
 
-static int CalcChoseOptions()
+static int CalcChoseOption()
 {
-    char tempStr[SPARE_VOLUME] = "";
-    int lenOfStr = 0;
-    int result = scanf("%s%n", tempStr, &lenOfStr);
-    getchar();      // to take \n
+    int chosenOption = 0;
+    int result = scanf("%d", &chosenOption);
+    while (getchar() != '\n');
 
-    while (result <= 0)
+    while (result <= 0 || !(chosenOption >= 1 && chosenOption <= (int)numOfFunctionsForOptions + 1))
     {
         if (result == EOF)
         {
             cprintf(RED, "\nВведён символ конца файла. Программа завершена.\n");
-            return 1;
+            return -1;
         }
 
-        cprintf(RED, "Некорректный ввод. Повторите ввод (цифры записываются подряд без пробелов): ");
-        result = scanf("%s%n", tempStr, &lenOfStr);
-        getchar();      // to take \n
+        cprintf(RED, "Некорректный ввод. Повторите ввод: ");
+        result = scanf("%d", &chosenOption);
+        while (getchar() != '\n');      // to take \n
     }
 
-    return CalcConvertStrOfOptionsToNum(tempStr, lenOfStr);
+    return chosenOption;
 }
 
 void CalcCtor(MathExpression* mathExpression)
@@ -123,25 +108,30 @@ void CalcStart(MathExpression* mathExpression)
     CalcShowWelcomeMessage();
 
     CalcShowMenu();
-    int choosenOptions = CalcChoseOptions();
-    int powerOfTwo = 1;
+    int choosenOptions = CalcChoseOption();
     int result = 0;
 
-    for (int i = 0; i < (int)numOfFunctionsForOptions; i++)
+    while (choosenOptions != (int)numOfFunctionsForOptions + 1)
     {
-        if (choosenOptions & powerOfTwo)
+        if (choosenOptions == EOF || choosenOptions <= -1)
         {
-            result = CalcFunctionsForOption[i](mathExpression);
-        }
-        powerOfTwo <<= 1;
-
-        if (result)
-        {
-            PRINT_LOG_FILE_CALC("ERROR: An error occurred during execution option %d.\n", i + 1);
-            cprintf(RED, "Возникла ошибка в ходе выполнения опции %d.\n", i + 1);
             return;
         }
+
+        result = CalcFunctionsForOption[choosenOptions - 1](mathExpression);
+
+        if (result == 1)
+        {
+            PRINT_LOG_FILE_CALC("ERROR: An error occurred during execution option %d.\n", choosenOptions);
+            cprintf(RED, "Возникла ошибка в ходе выполнения опции %d.\n", choosenOptions);
+            return;
+        }
+
+        CalcShowMenu();
+        choosenOptions = CalcChoseOption();
     }
+
+    printf("До новых встреч!\n");
 }
 
 void NodeFree(Node* node)
