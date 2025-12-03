@@ -13,6 +13,10 @@ void WritePowInTeX(Node* node);
 
 void WriteLogInTeX(Node* node);
 
+void WriteRootInTeX(Node* node);
+
+void WriteSqrtInTeX(Node* node);
+
 void WriteLnInTeX(Node* node);
 
 void WriteSinInTeX(Node* node);

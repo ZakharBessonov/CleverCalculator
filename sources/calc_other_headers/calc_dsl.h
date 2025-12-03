@@ -9,6 +9,8 @@
 #define DIV_(X, Y)     CalcNewOpNodeWithTwoArgs(X, Y, OP_DIV)
 #define POW_(X, Y)     CalcNewOpNodeWithTwoArgs(X, Y, OP_POW)
 #define LOG_(X, Y)     CalcNewOpNodeWithTwoArgs(X, Y, OP_LOG)
+#define ROOT_(X, Y)    CalcNewOpNodeWithTwoArgs(X, Y, OP_ROOT)
+#define SQRT_(X)       CalcNewOpNodeWithOneArg(X, OP_SQRT)
 #define LN_(X)         CalcNewOpNodeWithOneArg(X, OP_LN)
 #define SIN_(X)        CalcNewOpNodeWithOneArg(X, OP_SIN)
 #define COS_(X)        CalcNewOpNodeWithOneArg(X, OP_COS)

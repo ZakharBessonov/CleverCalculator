@@ -354,7 +354,9 @@ Node* GetF(MathExpression* mathExpression, char** curPos, int indexOfOperation)
     Node* rightNode = NULL;
     Node* newOpNode = NULL;
 
-    if (operations[indexOfOperation].operationCode == OP_LOG)
+    OperationCode operationCode = operations[indexOfOperation].operationCode;
+
+    if (operationCode == OP_LOG || operationCode == OP_ROOT)
     {
         leftNode = GetE(mathExpression, curPos);
         RET_IF_NULL(leftNode);
@@ -376,7 +378,7 @@ Node* GetF(MathExpression* mathExpression, char** curPos, int indexOfOperation)
 
         SkipSpacesAndPrintSymbolInLogfile(curPos);
 
-        newOpNode = CalcNewOpNodeWithTwoArgs(leftNode, rightNode, OP_LOG);
+        newOpNode = CalcNewOpNodeWithTwoArgs(leftNode, rightNode, operationCode);
     }
     else
     {

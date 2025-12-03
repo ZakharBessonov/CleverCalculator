@@ -19,4 +19,6 @@ void RemoveNeutElemPow(Node* node, int* breaker);
 
 void RemoveNeutElemLog(Node* node, int* breaker);
 
+void RemoveNeutElemRoot(Node* node, int* breaker);
+
 #endif

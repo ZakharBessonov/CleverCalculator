@@ -351,18 +351,7 @@ void RemoveNeutElemPow(Node* node, int* breaker)
     if (leftSon != NULL && GetTypeNode(leftSon) == TYPE_NUMBER)
     {
         GetNumVal(leftSon, &tempVal);
-        if (IsEqual(tempVal, 0.0))
-        {
-            *breaker = 1;
-            tempParent = GetParent(node);
-            CopyNode(node, leftSon);
-            SetParent(node, tempParent);
-            free(leftSon);
-            leftSon = NULL;
-            NodeFree(rightSon);
-            rightSon = NULL;
-        }
-        else if (IsEqual(tempVal, 1.0))
+        if (IsEqual(tempVal, 0.0) || IsEqual(tempVal, 1.0))
         {
             *breaker = 1;
             tempParent = GetParent(node);
@@ -427,4 +416,44 @@ void RemoveNeutElemLog(Node* node, int* breaker)
             SetParent(node, tempParent);
         }
     }
+}
+
+void RemoveNeutElemRoot(Node* node, int* breaker)
+{
+    assert(node != NULL);
+    Node* leftSon = GetLeft(node);
+    Node* rightSon = GetRight(node);
+    Node* tempParent = NULL;
+    long double tempVal = 0.0;
+
+    if (leftSon != NULL && GetTypeNode(leftSon) == TYPE_NUMBER)
+    {
+        GetNumVal(leftSon, &tempVal);
+        if (IsEqual(tempVal, 1.0))
+        {
+            *breaker = 1;
+            tempParent = GetParent(node);
+            CopyNode(node, rightSon);
+            SetParent(node, tempParent);
+            free(rightSon);
+            leftSon = NULL;
+            free(leftSon);
+            rightSon = NULL;
+        }
+    }
+    else if (rightSon != NULL && GetTypeNode(rightSon) == TYPE_NUMBER)
+    {
+        GetNumVal(rightSon, &tempVal);
+        if (IsEqual(tempVal, 1.0) || IsEqual(tempVal, 0.0))
+        {
+            *breaker = 1;
+            tempParent = GetParent(node);
+            CopyNode(node, rightSon);
+            SetParent(node, tempParent);
+            free(rightSon);
+            NodeFree(leftSon);
+            leftSon = NULL;
+        }
+    }
+
 }

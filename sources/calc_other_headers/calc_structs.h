@@ -18,6 +18,8 @@ enum OperationCode
     OP_DIV,
     OP_POW,
     OP_LOG,
+    OP_ROOT,
+    OP_SQRT,
     OP_LN,
     OP_SIN,
     OP_COS,

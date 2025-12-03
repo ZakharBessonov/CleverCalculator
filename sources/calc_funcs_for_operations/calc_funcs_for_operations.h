@@ -13,6 +13,10 @@ long double CalcPow(DataForCounting dataForCounting);
 
 long double CalcLog(DataForCounting dataForCounting);
 
+long double CalcRoot(DataForCounting dataForCounting);
+
+long double CalcSqrt(DataForCounting dataForCounting);
+
 long double CalcLn(DataForCounting dataForCounting);
 
 long double CalcSin(DataForCounting dataForCounting);

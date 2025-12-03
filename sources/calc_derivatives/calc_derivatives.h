@@ -13,6 +13,10 @@ Node* TakeDerivativePow(Node* node, char varDifferentiation);
 
 Node* TakeDerivativeLog(Node* node, char varDifferentiation);
 
+Node* TakeDerivativeRoot(Node* node, char varDifferentiation);
+
+Node* TakeDerivativeSqrt(Node* node, char varDifferentiation);
+
 Node* TakeDerivativeLn(Node* node, char varDifferentiation);
 
 Node* TakeDerivativeSin(Node* node, char varDifferentiation);

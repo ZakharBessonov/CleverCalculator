@@ -98,7 +98,6 @@ void CalcDump(MathExpression* mathExpression, const char* fileName, const char* 
         fprintf(logfileCalc, "\n");
     }
 
-    size_t lenOfBuffer = 0;
     fprintf(logfileCalc, "Root:             <green> %p </green>\n", GetRoot(mathExpression));
 
     PrintVariables(mathExpression);

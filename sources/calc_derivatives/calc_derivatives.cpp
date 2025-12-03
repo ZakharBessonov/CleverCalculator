@@ -214,6 +214,54 @@ Node* TakeDerivativeLog(Node* node, char varDifferentiation)
     return result;
 }
 
+Node* TakeDerivativeRoot(Node* node, char varDifferentiation)
+{
+    Node* left = GetLeft(node);
+    Node* right = GetRight(node);
+    Node* helpNode1 = NULL;
+    Node* helpNode2 = NULL;
+    Node* result = NULL;
+    int IsThereVarInLeftNode = FindVarInSubTree(left, varDifferentiation);
+    int IsThereVarInRightNode = FindVarInSubTree(right, varDifferentiation);
+
+    if (!IsThereVarInLeftNode && !IsThereVarInRightNode)
+    {
+        result = CalcNewNumNode(0);
+    }
+    else if (IsThereVarInLeftNode && !IsThereVarInRightNode)
+    {
+        helpNode1 = CalcNewNumNode(2);
+        helpNode2 = CalcNewNumNode(-1);
+        result = MUL_(MUL_(cpy_(node), MUL_(helpNode2, DIV_(d_(left), POW_(cpy_(left), helpNode1)))),
+                      LN_(cpy_(right)));
+    }
+    else if (!IsThereVarInLeftNode && IsThereVarInRightNode)
+    {
+        helpNode1 = CalcNewNumNode(1);
+        helpNode2 = CalcNewNumNode(1);
+        result = DIV_(MUL_(POW_(cpy_(right), SUB_(DIV_(helpNode1, cpy_(left)), helpNode2)), d_(right)), cpy_(left));
+    }
+    else
+    {
+        helpNode1 = CalcNewNumNode(2);
+        result = MUL_(cpy_(node), SUB_(DIV_(d_(right), MUL_(cpy_(left), cpy_(right))),
+                                       MUL_(DIV_(d_(left), POW_(cpy_(left), helpNode1)), LN_(cpy_(right)))));
+    }
+
+    WriteDerivative(node, result, varDifferentiation);
+    return result;
+}
+
+Node* TakeDerivativeSqrt(Node* node, char varDifferentiation)
+{
+    Node* right = GetRight(node);
+    Node* helpNode1 = CalcNewNumNode(0.5);
+    Node* helpNode2 = CalcNewNumNode(-0.5);
+    Node* result = MUL_(MUL_(helpNode1, POW_(cpy_(right), helpNode2)), d_(right));
+    WriteDerivative(node, result, varDifferentiation);
+    return result;
+}
+
 Node* TakeDerivativeLn(Node* node, char varDifferentiation)
 {
     Node* right = GetRight(node);

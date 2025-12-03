@@ -188,6 +188,48 @@ void WriteLogInTeX(Node* node)
     }
 }
 
+void WriteRootInTeX(Node* node)
+{
+    if (node == NULL) return;
+
+    NodeType type = GetTypeNode(node);
+    if (type == TYPE_OP)
+    {
+        NodeType typeLeft = GetTypeNode(GetLeft(node));
+        NodeType typeRight = GetTypeNode(GetRight(node));
+        OperationCode operationCodeLeft = (typeLeft == TYPE_OP) ? GetOperation(GetLeft(node)) : DEFAULT_OP;
+        fprintf(texFile,"\\sqrt[");
+        operations[operationCodeLeft].funcToWritingInTeXFile(GetLeft(node));
+        fprintf(texFile, "]{");
+        OperationCode operationCodeRight = (typeRight == TYPE_OP) ? GetOperation(GetRight(node)) : DEFAULT_OP;
+        operations[operationCodeRight].funcToWritingInTeXFile(GetRight(node));
+        fprintf(texFile, "}");
+    }
+    else
+    {
+        ProcessNumberOrLabel(node);
+    }
+}
+
+void WriteSqrtInTeX(Node* node)
+{
+    if (node == NULL) return;
+
+    NodeType type = GetTypeNode(node);
+    if (type == TYPE_OP)
+    {
+        NodeType typeOfSon = GetTypeNode(GetRight(node));
+        OperationCode operationCode = (typeOfSon == TYPE_OP) ? GetOperation(GetRight(node)) : DEFAULT_OP;
+        fprintf(texFile,"\\sqrt[]{");
+        operations[operationCode].funcToWritingInTeXFile(GetRight(node));
+        fprintf(texFile, "}");
+    }
+    else
+    {
+        ProcessNumberOrLabel(node);
+    }
+}
+
 void WriteLnInTeX(Node* node)
 {
     if (node == NULL) return;

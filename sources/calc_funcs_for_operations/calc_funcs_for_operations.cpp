@@ -88,6 +88,44 @@ long double CalcLog(DataForCounting dataForCounting)
     return logl(num2) / logl(num1);
 }
 
+long double CalcRoot(DataForCounting dataForCounting)
+{
+    long double num1 = dataForCounting.num1;
+    long double num2 = dataForCounting.num2;
+
+    if (num2 < 0)
+    {
+        PRINT_LOG_FILE_CALC("ERROR: Extracting the root of a negative number root(%Lg, %Lg).\n", num1, num2);
+        return NAN;
+    }
+
+    if (IsEqual(num2, 0) && num1 < 0)
+    {
+        PRINT_LOG_FILE_CALC("ERROR: Extracting the negative root of 0.\n");
+        return NAN;
+    }
+
+    if (IsEqual(num1, 0.0))
+    {
+        PRINT_LOG_FILE_CALC("ERROR: The degree of the root is 0.\n");
+        return NAN;
+    }
+    return powl(num2, 1.0 / num1);
+}
+
+long double CalcSqrt(DataForCounting dataForCounting)
+{
+    long double num = dataForCounting.num1;
+
+    if (num < 0)
+    {
+        PRINT_LOG_FILE_CALC("ERROR: Negative number under the square root\n");
+        return NAN;
+    }
+
+    return sqrtl(num);
+}
+
 long double CalcLn(DataForCounting dataForCounting)
 {
     long double num = dataForCounting.num1;
